@@ -1,0 +1,14 @@
+{
+  "bpm": 96,
+  "count_in_beats": 4,
+  "phrase_beats": 8,
+  "record_seconds": 6,
+  "max_clip_seconds": 8,
+  "max_clip_bytes": 2000000,
+  "key": "C major",
+  "progression": ["C", "Am", "F", "G"],
+  "motif_midi": [60, 64, 67, 69, 67, 64, 62, 60],
+  "chorus_entry_bars": [4, 8],
+  "track_seconds": 30,
+  "moods": ["joyful", "dreamy", "anthemic", "melancholy", "playful", "fierce"]
+}
