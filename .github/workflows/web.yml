@@ -1,0 +1,42 @@
+name: web
+on:
+  push:
+    paths: ["src/**", "tests/**", "package.json", "pnpm-lock.yaml", "next.config.ts", "playwright.config.ts", "db/**", ".github/workflows/web.yml"]
+  pull_request:
+    paths: ["src/**", "tests/**", "package.json", "pnpm-lock.yaml", "db/**"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg17
+        env:
+          POSTGRES_PASSWORD: crowdchorus
+          POSTGRES_DB: crowdchorus
+        ports: ["5434:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-retries 30
+    env:
+      DATABASE_URL: postgres://postgres:crowdchorus@127.0.0.1:5434/crowdchorus
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg postgresql-client
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: dsp
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - run: gem install rake && rake dsp:build db:migrate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
