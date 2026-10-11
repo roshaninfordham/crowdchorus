@@ -1,3 +1,4 @@
+import type { GenerationMeta } from "@/lib/labels";
 import { pool } from "./db";
 import type { JobStatus, Room } from "./rooms";
 import { signedMediaUrl } from "./signing";
@@ -12,13 +13,11 @@ export type Brief = {
   theme?: string;
 };
 export type Source = { title: string; url: string; snippet?: string };
-export type ModelMetadata = {
+export type ModelMetadata = GenerationMeta & {
   text_model?: string;
   image_model?: string;
   music_model?: string;
-  fallback?: { brief?: boolean; art?: boolean; music?: boolean; sources?: boolean };
   durations_ms?: Record<string, number>;
-  errors?: Record<string, string>;
 };
 
 export type Results = {
