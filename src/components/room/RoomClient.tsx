@@ -47,7 +47,7 @@ export function RoomClient({ code, shareUrl, qrSvg }: { code: string; shareUrl: 
 
       {snap.job && <GenerationView code={code} job={snap.job} isHost={isHost} />}
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+      <div className={collecting ? "grid gap-6 lg:grid-cols-[1.3fr_1fr]" : "space-y-6"}>
         <div className="space-y-6">
           {collecting && !me && (
             <section className="card" aria-labelledby="join-h">
