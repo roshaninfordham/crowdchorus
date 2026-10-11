@@ -25,7 +25,7 @@ export async function chorusLine(mood: string, theme: string | null): Promise<Ch
 }
 
 const analyticsOut = z.object({
-  source: z.enum(["snowflake", "postgres-local"]),
+  source: z.string().min(1).max(40),
   completed_songs: z.number(),
   avg_participants: z.number().nullable(),
   success_rate: z.number().nullable(),
@@ -53,7 +53,7 @@ async function localAnalytics(): Promise<Analytics> {
 
 const g = globalThis as typeof globalThis & { __ccAnalytics?: { at: number; value: Analytics } };
 
-/** Aggregate analytics, cached 60 s per process. */
+/** Aggregate analytics from the worker (any warehouse) or local Postgres, cached 60 s per process. */
 export async function analytics(now = Date.now()): Promise<Analytics> {
   if (g.__ccAnalytics && now - g.__ccAnalytics.at < 60_000) return g.__ccAnalytics.value;
   let value: Analytics;
