@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Off on purpose: every room page and API route is request-time data.
+  cacheComponents: false,
+  partialPrefetching: false,
   turbopack: {
     rules: {
       "*.css": {
