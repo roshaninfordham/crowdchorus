@@ -225,10 +225,13 @@ cp .env.example .env.local     # optional: every key is optional
 rake dev                       # database, migrations, audio engine, worker, web
 ```
 
-Open <http://localhost:3000>, create a room, and use **Add simulated singer** to
-try the whole flow alone. To test with phones on the same network, serve over
-HTTPS (`pnpm dev --experimental-https`): browsers only allow the microphone
-on secure origins.
+Open <http://localhost:3000>, create a room, and use **Add simulated participant**
+to try the whole flow alone.
+
+To let phones on the same Wi-Fi join and sing, run `HTTPS=1 rake dev`. The QR
+code and share link automatically use this machine's network address, and
+browsers only allow the microphone on secure (https) pages. The dev certificate
+is self-signed, so phones show a warning the first time; accept it to continue.
 
 ```bash
 rake -T          # every task
