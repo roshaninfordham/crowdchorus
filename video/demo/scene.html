@@ -1,0 +1,580 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../shared/fonts.css">
+<style>
+:root{--ink:#0c0b10;--panel:#15131c;--panel2:#1d1a27;--line:#2c2838;--fg:#f3eefa;--muted:#a59fb4;--accent:#ff8a5b;--accent2:#ffc46b;--cool:#7be0d0;--danger:#ff6b81}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink);color:var(--fg);font-family:Geist,sans-serif;-webkit-font-smoothing:antialiased}
+#stage{position:absolute;inset:0;overflow:hidden;
+  background:radial-gradient(1200px 700px at 85% -10%,rgba(255,138,91,.16),transparent 60%),radial-gradient(900px 700px at -5% 110%,rgba(123,224,208,.10),transparent 60%),var(--ink)}
+.grain{position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;pointer-events:none;z-index:50}
+.sec{position:absolute;inset:0;opacity:0}
+.mono{font-family:"Geist Mono",monospace}
+.serif{font-family:"Instrument Serif",serif}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.o0{opacity:0}
+
+/* chapter + captions */
+#chapter{position:absolute;left:64px;top:44px;z-index:40;display:flex;gap:14px;align-items:center;font:500 18px "Geist Mono";letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+#chapter b{color:var(--accent);font-weight:500}
+#crit{position:absolute;right:64px;top:40px;z-index:40;display:flex;gap:8px}
+#crit span{font:500 15px "Geist Mono";letter-spacing:.14em;padding:7px 12px;border:1px solid var(--line);border-radius:999px;color:#6f6880;text-transform:uppercase}
+#crit span.on{color:var(--ink);background:var(--accent2);border-color:var(--accent2)}
+#cap{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);z-index:45;max-width:1500px;text-align:center}
+#cap div{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:1500px;opacity:0;
+  font:500 29px/1.35 Geist;color:#fff;background:rgba(12,11,16,.78);padding:10px 22px;border-radius:14px;border:1px solid rgba(255,255,255,.06)}
+
+/* hook */
+.big{font:400 112px/1.05 "Instrument Serif";letter-spacing:-.01em}
+.chips{display:flex;gap:22px;margin-top:56px}
+.chip{position:relative;font:500 34px Geist;padding:14px 30px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted)}
+.chip .strike{position:absolute;left:18px;right:18px;top:50%;height:3px;background:var(--danger);transform-origin:left;transform:scaleX(0)}
+#prompt{position:absolute;left:250px;top:330px;width:700px}
+#prompt .lbl{font:500 20px "Geist Mono";letter-spacing:.16em;color:var(--muted);margin-bottom:18px}
+#prompt .box{font:400 40px "Geist Mono";padding:30px 34px;border:1px solid var(--accent);border-radius:20px;background:var(--panel);min-height:110px}
+#crowd{position:absolute;left:1120px;top:300px;width:560px;height:420px}
+.dot{position:absolute;width:46px;height:46px;border-radius:50%;background:var(--panel2);border:2px solid var(--line)}
+#crowdlbl{position:absolute;left:1120px;top:740px;width:560px;text-align:center;font:500 22px "Geist Mono";letter-spacing:.14em;color:var(--muted)}
+#h2line{position:absolute;left:0;right:0;top:830px;text-align:center;font:400 54px "Instrument Serif";font-style:italic}
+.logo{display:flex;gap:10px;align-items:flex-end;height:120px}
+.logo i{display:block;width:22px;border-radius:11px;background:linear-gradient(var(--accent2),var(--accent))}
+.word{font:600 132px Geist;letter-spacing:-.035em;margin-top:26px}
+.tag{display:flex;gap:30px;margin-top:22px;font:400 58px "Instrument Serif";font-style:italic;color:var(--accent2)}
+
+/* product footage */
+#rig{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.win{position:absolute;left:0;top:0;width:1600px;height:1040px;transform-origin:0 0;border-radius:22px;overflow:hidden;background:#0c0b10;
+  box-shadow:0 60px 140px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.08)}
+.bar{height:40px;background:#18161f;display:flex;align-items:center;gap:9px;padding:0 18px;border-bottom:1px solid #26222f}
+.bar i{width:13px;height:13px;border-radius:50%;background:#3a3546}
+.bar .url{margin-left:22px;flex:1;max-width:620px;height:26px;border-radius:8px;background:#0f0e14;color:#8d879b;font:400 14px "Geist Mono";display:flex;align-items:center;padding:0 12px}
+.view{position:relative;width:1600px;height:1000px;overflow:hidden}
+.view img{position:absolute;left:0;top:0;width:100%;opacity:0}
+.phone{position:absolute;left:0;top:0;width:418px;height:872px;transform-origin:0 0;border-radius:58px;background:#050508;padding:14px;
+  box-shadow:0 50px 120px rgba(0,0,0,.7),0 0 0 2px #2a2733 inset,0 0 0 1px rgba(255,255,255,.1)}
+.phone .view{width:390px;height:844px;border-radius:44px}
+.notch{position:absolute;left:50%;top:24px;width:110px;height:30px;margin-left:-55px;background:#050508;border-radius:20px;z-index:3}
+#cursor{position:absolute;left:0;top:0;width:34px;height:40px;z-index:10;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.ripple{position:absolute;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;border:4px solid var(--accent2);opacity:0;z-index:9}
+.tap{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid #fff;opacity:0;z-index:9}
+.callout{position:absolute;z-index:20;background:rgba(21,19,28,.94);border:1px solid var(--line);border-radius:22px;padding:26px 30px;box-shadow:0 30px 80px rgba(0,0,0,.6);opacity:0}
+.callout h4{font:500 17px "Geist Mono";letter-spacing:.16em;color:var(--accent);text-transform:uppercase;margin-bottom:14px}
+.callout p{font:500 30px/1.3 Geist}
+.callout .code{font:400 20px/1.5 "Geist Mono";color:var(--cool);margin-top:12px}
+.steps div{display:grid;grid-template-columns:30px 330px 1fr 110px;align-items:center;gap:14px;font:500 24px Geist;margin:12px 0}
+.steps .ck{width:28px;height:28px;border-radius:50%;background:var(--cool);color:var(--ink);font:700 17px Geist;display:flex;align-items:center;justify-content:center}
+.steps .track{height:10px;border-radius:5px;background:var(--panel2);overflow:hidden}
+.steps .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transform-origin:left;transform:scaleX(0)}
+.steps .ms{font:400 22px "Geist Mono";color:var(--muted);text-align:right}
+#songwave{position:absolute;left:300px;right:300px;bottom:118px;height:120px;z-index:20;opacity:0;display:flex;align-items:center;gap:2px;padding:0 24px;
+  background:rgba(12,11,16,.82);border:1px solid var(--line);border-radius:20px}
+#songwave i{flex:1;background:#4b4559;border-radius:2px}
+#songwave i.p{background:var(--accent)}
+#songlbl{position:absolute;left:300px;bottom:252px;z-index:20;opacity:0;font:500 18px "Geist Mono";letter-spacing:.14em;color:var(--accent2);text-transform:uppercase}
+
+/* diagrams */
+.h{position:absolute;left:120px;top:120px;font:400 72px/1.05 "Instrument Serif";max-width:1700px}
+.h em{color:var(--accent2)}
+.node{position:absolute;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:20px 24px;opacity:0}
+.node .t{font:600 28px Geist}
+.node .s{font:400 19px "Geist Mono";color:var(--muted);margin-top:6px}
+.node .lang{position:absolute;top:-15px;right:16px;font:600 15px "Geist Mono";letter-spacing:.1em;padding:5px 10px;border-radius:999px;background:var(--accent);color:var(--ink)}
+.node.lit{border-color:var(--accent)}
+.arrow{position:absolute;height:3px;background:linear-gradient(90deg,var(--line),var(--accent));transform-origin:left;transform:scaleX(0)}
+.wave{position:absolute;display:flex;align-items:center;gap:2px}
+.wave i{width:4px;border-radius:2px;background:var(--cool)}
+.pulse{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--accent2);box-shadow:0 0 24px var(--accent2);opacity:0}
+.edge{position:absolute;height:2px;background:var(--line);transform-origin:0 50%}
+.elbl{position:absolute;font:400 18px "Geist Mono";color:var(--muted);opacity:0;background:var(--ink);padding:2px 8px}
+.card{position:absolute;width:520px;height:250px;border:1px solid var(--line);border-radius:24px;background:var(--panel);padding:30px 32px;opacity:.0}
+.card .n{font:600 40px Geist;letter-spacing:-.02em}
+.card .r{font:400 25px/1.3 Geist;color:var(--muted);margin-top:8px}
+.card .k{position:absolute;left:32px;bottom:28px;font:400 18px "Geist Mono";color:var(--cool)}
+.card .fb{position:absolute;right:28px;bottom:24px;font:500 15px Geist;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,196,107,.4);color:var(--accent2);background:rgba(255,196,107,.08)}
+.row{position:absolute;left:220px;width:1480px;display:flex;align-items:center;gap:26px;font:500 38px Geist;opacity:0}
+.row .ok{width:50px;height:50px;border-radius:50%;background:var(--cool);color:var(--ink);display:flex;align-items:center;justify-content:center;font:700 28px Geist;flex:none}
+.row .n{margin-left:auto;font:400 30px "Geist Mono";color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:12px;font:500 32px Geist;padding:18px 30px;border-radius:999px;border:1px solid var(--line);background:var(--panel);opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="grain"></div>
+  <div id="chapter"><b id="chn">01</b><span id="cht">The problem</span></div>
+  <div id="crit"><span data-c="technology">Technology</span><span data-c="design">Design</span><span data-c="completion">Completion</span><span data-c="learning">Learning</span></div>
+
+  <!-- HOOK -->
+  <section class="sec" id="s-h1"><div class="center">
+    <div class="big" id="h1a">Every group has a song in it.</div>
+    <div class="chips"><div class="chip">instruments<span class="strike"></span></div><div class="chip">a studio<span class="strike"></span></div><div class="chip">weeks of edits<span class="strike"></span></div></div>
+  </div></section>
+  <section class="sec" id="s-h2">
+    <div id="prompt"><div class="lbl">ONE PERSON · ONE PROMPT</div><div class="box"><span id="typed"></span><span id="caret">▍</span></div></div>
+    <div id="crowd"></div><div id="crowdlbl">EVERYONE ELSE</div>
+    <div id="h2line">The song belongs to the prompt, not the people.</div>
+  </section>
+  <section class="sec" id="s-h3"><div class="center">
+    <div class="logo" id="logo"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="word">CrowdChorus</div>
+    <div class="tag"><span>One room.</span><span>Many voices.</span><span>One original song.</span></div>
+  </div></section>
+
+  <!-- PRODUCT -->
+  <section class="sec" id="s-flow">
+    <div id="rig">
+      <div class="win" id="win"><div class="bar"><i></i><i></i><i></i><div class="url" id="url">localhost:3000</div></div><div class="view" id="dview"></div></div>
+      <div class="phone" id="phone"><div class="notch"></div><div class="view" id="pview"></div></div>
+      <svg id="cursor" viewBox="0 0 34 40"><path d="M3 2 L3 33 L11 25 L17 38 L23 35 L17 23 L28 23 Z" fill="#fff" stroke="#0c0b10" stroke-width="2.4" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="callout" id="co-key" style="left:1320px;top:120px;width:500px"><h4>Shared by every voice</h4><p>C major · 96 BPM<br>C – Am – F – G</p><div class="code">music.json → pitch guide, prompt, mixer</div></div>
+    <div class="callout" id="co-motif" style="left:150px;top:640px;width:760px"><h4>Pitch guide · the 8-note motif</h4><div id="motif" style="position:relative;height:120px"></div></div>
+    <div class="callout" id="co-sse" style="left:1130px;top:110px;width:560px"><h4>Live, no refresh</h4><p>Postgres NOTIFY → Server-Sent Events</p></div>
+    <div class="callout" id="co-job" style="left:1000px;top:740px;width:860px"><h4>Two clicks → one job</h4><p>Jobs created for this room: <span class="mono" id="jobs" style="color:var(--accent2)">1</span></p><div class="code">INSERT … ON CONFLICT (room_id) WHERE status &lt;&gt; 'failed' DO NOTHING</div></div>
+    <div class="callout" id="co-steps" style="left:1010px;top:330px;width:830px"><h4>Measured in this run</h4><div class="steps" id="steps"></div></div>
+    <div class="callout" id="co-mix" style="left:1130px;top:560px;width:640px"><h4>chorus-dsp mix report</h4><p id="mixp"></p></div>
+    <div id="songlbl">▶ The real song from this room · 3 voices</div>
+    <div id="songwave"></div>
+  </section>
+
+  <!-- TECH: AUDIO -->
+  <section class="sec" id="s-dsp">
+    <div class="h" id="dsp-h">Music models take <em>text</em>.<br>They can't take a crowd.</div>
+    <div id="dspnodes"></div>
+    <div id="align" style="position:absolute;left:160px;top:560px;width:1600px;height:400px;opacity:0"></div>
+    <div id="duck" style="position:absolute;left:160px;top:430px;width:1600px;height:420px;opacity:0"></div>
+    <div class="callout" id="co-test" style="left:560px;top:820px;width:800px"><h4>dsp/tests/mix.rs</h4><p class="mono" style="font-size:24px">every_voice_is_audible_in_the_chorus <span style="color:var(--cool)">… ok</span></p></div>
+  </section>
+
+  <!-- TECH: ARCHITECTURE -->
+  <section class="sec" id="s-arch">
+    <div class="h" style="font-size:60px">Five languages. One repo.<br><em>Zero</em> service-to-service network calls.</div>
+    <div id="archbox" style="position:absolute;inset:0"></div>
+  </section>
+
+  <!-- SPONSORS -->
+  <section class="sec" id="s-sp">
+    <div class="h" style="font-size:60px;top:110px">Every sponsor tool is a <em>provider plug-in</em>.</div>
+    <div id="cards"></div>
+    <div id="labelsCrop" style="position:absolute;left:50%;top:330px;opacity:0;border-radius:18px;box-shadow:0 40px 100px rgba(0,0,0,.7);border:1px solid var(--line)"></div>
+    <div id="honest" class="serif" style="position:absolute;left:0;right:0;top:860px;text-align:center;font-size:52px;font-style:italic;opacity:0">Labelled on the page. Never passed off as generated.</div>
+  </section>
+
+  <!-- COMPLETION -->
+  <section class="sec" id="s-done">
+    <div class="h" style="font-size:64px">It works, end to end.</div>
+    <div id="rows"></div>
+    <div id="priv" style="position:absolute;left:0;right:0;top:820px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 120px"></div>
+  </section>
+
+  <!-- LEARNING -->
+  <section class="sec" id="s-learn">
+    <div class="h" style="font-size:72px">What we stretched into</div>
+    <div id="learn" style="position:absolute;left:120px;top:360px;display:flex;flex-direction:column;gap:30px"></div>
+  </section>
+
+  <!-- END -->
+  <section class="sec" id="s-end"><div class="center">
+    <div class="logo" id="logo2"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="word">CrowdChorus</div>
+    <div class="tag"><span>One room.</span><span>Many voices.</span><span>One original song.</span></div>
+    <div class="mono" id="gh" style="margin-top:60px;font-size:34px;color:var(--fg);padding:16px 30px;border:1px solid var(--line);border-radius:16px;background:var(--panel)">github.com/roshaninfordham/crowdchorus</div>
+    <div style="margin-top:22px;font:400 22px 'Geist Mono';color:var(--muted);letter-spacing:.12em">OPEN SOURCE · MIT · RUNS WITH ZERO API KEYS</div>
+  </div></section>
+
+  <div id="cap"></div>
+</div>
+
+<script src="../shared/vendor/gsap.min.js"></script>
+<script src="../shared/engine.js"></script>
+<script>
+(async () => {
+const get = u => fetch(u).then(r => r.json());
+const [CAP, PEAKS] = await Promise.all([get("capture/shots.json"), get("capture/peaks.json")]);
+const MUSIC = await get("capture/music.json");
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const el = (tag, cls, html, parent) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.append(e); return e; };
+
+// ---- real screenshots
+const imgs = {};
+async function addShot(name, view) {
+  const i = el("img", null, null, view); i.src = "capture/" + CAP.shots[name].file; await i.decode(); imgs[name] = i; return i;
+}
+const D = ["01-landing","02-landing-filled","03-room-host","04-host-roster-1","04-host-roster-2","05-host-ready","07-gen-done","08-reveal","09-reveal-playing","08b-reveal-full"];
+const P = ["10-phone-code","11-phone-join","12-phone-take","13-phone-countin","14-phone-recording","14b-phone-recording","15-phone-consent","16-phone-submitted"];
+for (const n of D) await addShot(n, $("#dview"));
+for (const n of P) await addShot(n, $("#pview"));
+const crop = $("#labelsCrop"), lb = CAP.shots["08-reveal"].boxes.labels, CS = 2.1;
+Object.assign(crop.style, { width: lb.w * CS + 24 + "px", height: lb.h * CS + 24 + "px", marginLeft: -(lb.w * CS + 24) / 2 + "px",
+  background: `#0c0b10 url(capture/08-reveal.png) no-repeat`, backgroundSize: `${1600 * CS}px auto`, backgroundPosition: `${-(lb.x * CS) + 12}px ${-(lb.y * CS) + 12}px` });
+
+Scene.boot("audio/manifest.json", (tl, E) => {
+  const T = (id, o = 0) => E.at(id, o), TE = (id, o = 0) => E.end(id, o);
+  // entrances start hidden: frames render in order, so a tween that hasn't started yet leaves the CSS state showing
+  const ft = (t, from, to, at) => { if (from.opacity === 0) tl.set(t, from, 0); return tl.fromTo(t, from, { duration: .45, ease: "power3.out", ...to, immediateRender: false }, at); };
+  const fadeIn = (t, at, d = .45) => ft(t, { opacity: 0 }, { opacity: 1, duration: d }, at);
+  const fadeOut = (t, at, d = .35) => ft(t, { opacity: 1 }, { opacity: 0, duration: d, ease: "power1.in" }, at);
+  const span = (t, a, b, d) => { fadeIn(t, a, d); fadeOut(t, b, d); };
+  const cues = [];                                  // sound cues, read by master.py
+  const cue = (type, at, extra = {}) => cues.push({ type, t: +at.toFixed(3), ...extra });
+  window.__cues = cues;
+
+  // ---- chapters + MLH criteria
+  const chapters = [
+    ["h1", "01", "The problem", []],
+    ["f1", "02", "Live demo · 3 real browsers", ["design", "completion"]],
+    ["t1", "03", "The audio engine", ["technology"]],
+    ["a1", "04", "Architecture", ["technology", "learning"]],
+    ["p0", "05", "Sponsor tools", ["technology"]],
+    ["c1", "06", "Does it work?", ["completion"]],
+    ["l1", "07", "Learning", ["learning"]],
+    ["e1", "", "", []],
+  ];
+  chapters.forEach(([id], i) => { if (i) cue("whoosh", T(id) - .5, { gain: .5 }); });
+  const critEls = $$("#crit span");
+  E.onFrame(t => {
+    const [, n, title, crit] = chapters.filter(([id]) => t >= T(id) - .5).pop() || chapters[0];
+    $("#chn").textContent = n; $("#cht").textContent = title;
+    critEls.forEach(c => c.classList.toggle("on", crit.includes(c.dataset.c)));
+    $("#url").textContent = t < T("f1", 2.75) ? "localhost:3000" : t < T("f9", -.1) ? "10.225.86.208:3000/r/" + CAP.code : "10.225.86.208:3000/s/" + CAP.code;
+  });
+  tl.set("#chapter,#crit", { opacity: 1 }, 0); tl.set("#chapter,#crit", { opacity: 0 }, T("e1") - .5);
+
+  // ---- captions (spoken spellings back to written ones)
+  const clean = s => s.replace(/Post gress/g, "Postgres").replace(/Nah no/g, "Nano").replace(/free verb/g, "Freeverb").replace(/F F mpeg/g, "FFmpeg")
+    .replace(/C plus plus/g, "C++").replace(/Next J S/g, "Next.js").replace(/Q\.R\./g, "QR").replace(/A\.I\./g, "AI").replace(/plug in/g, "plug-in")
+    .replace(/six letter/g, "six-letter").replace(/four beat count in/g, "four-beat count-in").replace(/three browser/g, "three-browser")
+    .replace(/twenty four hours/g, "24 hours").replace(/listen and notify/g, "LISTEN/NOTIFY").replace(/command line/g, "command-line").replace(/schema validated/g, "schema-validated");
+  for (const l of E.manifest().lines) {
+    const c = el("div", null, clean(l.text), $("#cap"));
+    tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: .15, immediateRender: false }, l.start - .05);
+    tl.fromTo(c, { opacity: 1 }, { opacity: 0, duration: .15, immediateRender: false }, l.end + .1);
+  }
+
+  // =========== HOOK ===========
+  span("#s-h1", 0, T("h2") - .35);
+  ft("#h1a", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: .9 }, .3);
+  $$("#s-h1 .chip").forEach((c, i) => {
+    ft(c, { opacity: 0, y: 30 }, { opacity: 1, y: 0 }, T("h1", 2.3 + i * .55));
+    ft(c.querySelector(".strike"), { scaleX: 0 }, { scaleX: 1, duration: .35, ease: "power2.in" }, T("h1", 3.9 + i * .18));
+  });
+  span("#s-h2", T("h2") - .3, T("h3") - .3);
+  const promptText = "write me a song about our team";
+  E.onFrame(t => {
+    const a = T("h2", .3), n = Math.max(0, Math.min(promptText.length, Math.floor((t - a) * 18)));
+    $("#typed").textContent = promptText.slice(0, n);
+    $("#caret").style.opacity = Math.floor(t * 2.2) % 2 ? .2 : 1;
+  });
+  const dots = [];
+  for (let i = 0; i < 15; i++) {
+    const d = el("div", "dot", null, $("#crowd")); dots.push(d);
+    d.style.left = (i % 5) * 112 + (Math.floor(i / 5) % 2) * 50 + "px"; d.style.top = Math.floor(i / 5) * 130 + 40 + "px";
+    ft(d, { opacity: 0, scale: .4 }, { opacity: 1, scale: 1, duration: .4 }, T("h2", .4 + i * .05));
+    ft(d, { opacity: 1 }, { opacity: .3, duration: .6 }, T("h2", 2.4));
+  }
+  fadeIn("#crowdlbl", T("h2", 1.2)); ft("#h2line", { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("h2", 3.4));
+
+  span("#s-h3", T("h3") - .3, T("f1") - .5);
+  cue("impact", T("h3", .1), { gain: .7 });
+  ft("#s-h3 .word", { opacity: 0, scale: .94 }, { opacity: 1, scale: 1, duration: .9 }, T("h3", .05));
+  $$("#s-h3 .tag span").forEach((s, i) => ft(s, { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, T("h3", 1.2 + i * .62)));
+  const bars = [...$$("#logo i"), ...$$("#logo2 i")];
+  E.onFrame(t => bars.forEach((b, i) => { const k = i % 5; b.style.height = 40 + 70 * (0.5 + 0.5 * Math.sin(t * 5.2 + k * 1.3)) * (0.6 + 0.4 * Math.sin(t * 1.7 + k)) + "px"; }));
+
+  // =========== LIVE DEMO ===========
+  const FLOW0 = T("f1") - .45, FLOW1 = T("t1") - .35;
+  span("#s-flow", FLOW0, FLOW1);
+  // layouts: A = laptop alone, B = laptop left + phone right
+  const A = { x: 248, y: 78, scale: .89 }, B = { x: 56, y: 150, scale: .74 };
+  const PH_IN = { x: 1340, y: 104, scale: 1, opacity: 1 }, PH_OUT = { x: 2050, y: 104, scale: 1, opacity: 1 };
+  let W = { ...A }, PH = { ...PH_OUT }, CAM = { x: 0, y: 0, scale: 1 }, CUR = { x: 1500, y: 1000 };
+  tl.set("#win", { ...A }, 0); tl.set("#phone", PH_OUT, 0); tl.set("#rig", CAM, 0); tl.set("#cursor", { x: CUR.x, y: CUR.y, opacity: 0 }, 0);
+  ft("#win", { opacity: 0, y: A.y + 40 }, { opacity: 1, y: A.y, duration: .8 }, FLOW0);
+  const win = (to, at, d = 1) => { ft("#win", W, { ...to, duration: d, ease: "power3.inOut" }, at); W = { ...to }; };
+  const phone = (to, at, d = 1) => { ft("#phone", PH, { ...to, duration: d, ease: "power3.inOut" }, at); PH = { ...to }; };
+  const cam = (to, at, d = 1.1) => { ft("#rig", CAM, { ...to, duration: d, ease: "power2.inOut" }, at); CAM = { ...to }; };
+  // rig coordinates of a box in a shot, given the window/phone layout at that moment
+  const dpt = (shot, key, L = W, scroll = 0) => { const b = CAP.shots[shot].boxes[key]; return { x: L.x + L.scale * (b.x + b.w / 2), y: L.y + L.scale * (40 + b.y + b.h / 2 - scroll), w: b.w * L.scale, h: b.h * L.scale }; };
+  const ppt = (shot, key, L = PH) => { const b = CAP.shots[shot].boxes[key]; return { x: L.x + L.scale * (14 + b.x + b.w / 2), y: L.y + L.scale * (14 + b.y + b.h / 2), w: b.w * L.scale, h: b.h * L.scale }; };
+  const focus = (p, s, at, d) => cam({ x: 960 - s * p.x, y: 540 - s * p.y, scale: s }, at, d);
+  const reset = (at, d) => cam({ x: 0, y: 0, scale: 1 }, at, d);
+  const cursorTo = (p, at, d = .7) => { ft("#cursor", { x: CUR.x, y: CUR.y }, { x: p.x - 4, y: p.y - 3, duration: d, ease: "power2.inOut" }, at); CUR = { x: p.x - 4, y: p.y - 3 }; };
+  const click = (p, at) => {
+    const r = el("div", "ripple", null, $("#rig")); r.style.left = p.x + "px"; r.style.top = p.y + "px";
+    tl.fromTo(r, { opacity: 1, scale: .3 }, { opacity: 0, scale: 1.6, duration: .5, ease: "power2.out", immediateRender: false }, at);
+    tl.fromTo("#cursor", { scale: 1 }, { scale: .85, duration: .08, yoyo: true, repeat: 1, immediateRender: false }, at);
+    cue("tick", at, { gain: .9 });
+  };
+  const tap = (p, at) => {
+    const r = el("div", "tap", null, $("#rig")); r.style.left = p.x + "px"; r.style.top = p.y + "px";
+    tl.fromTo(r, { opacity: .9, scale: .5 }, { opacity: 0, scale: 1.3, duration: .45, immediateRender: false }, at);
+    cue("tick", at, { gain: .8 });
+  };
+  const show = (name, at, d = .3) => fadeIn(imgs[name], at, d);
+  
+  // f1: host creates the room
+  show("01-landing", FLOW0, .01);
+  fadeIn("#cursor", T("f1", .1), .3);
+  focus(dpt("01-landing", "mood"), 1.35, T("f1", 0), 1.2);
+  let p = dpt("01-landing", "nick", { x: W.x, y: W.y, scale: W.scale });
+  cursorTo(p, T("f1", .1)); click(p, T("f1", .8));
+  show("02-landing-filled", T("f1", .95));
+  p = dpt("01-landing", "mood"); cursorTo(p, T("f1", 1.0), .5); click(p, T("f1", 1.55));
+  p = dpt("02-landing-filled", "create"); cursorTo(p, T("f1", 1.7), .7); click(p, T("f1", 2.5));
+  reset(T("f1", 2.4), .9);
+  show("03-room-host", T("f1", 2.75));
+
+  // f2: share code + QR; a phone joins
+  p = dpt("03-room-host", "qr"); cursorTo({ x: p.x + 160, y: p.y + 40 }, T("f2", 0), .8);
+  focus({ x: p.x + 130, y: p.y }, 1.9, T("f2", -.1), 1.1);
+  fadeOut("#cursor", T("f2", 1.5), .3);
+  reset(T("f2", 1.7), 1.0); win(B, T("f2", 1.7)); phone(PH_IN, T("f2", 1.8));
+  show("10-phone-code", T("f2", 1.7), .01);
+  let q = ppt("10-phone-code", "join", PH_IN); tap(q, T("f2", 3.2));
+  show("11-phone-join", T("f2", 3.45));
+  q = ppt("11-phone-join", "join"); tap(q, T("f2", 4.5));
+  show("12-phone-take", T("f2", 4.75));
+
+  // f3: one shared line, one key
+  focus(ppt("12-phone-take", "line"), 1.7, T("f3", 0), 1.1);
+  span("#co-key", T("f3", .9), T("f4", -.2));
+  reset(T("f3", 3.6), 1.0);
+
+  // f4: pitch guide, count-in, record
+  const motif = $("#motif"), lo = Math.min(...MUSIC.motif_midi), hi = Math.max(...MUSIC.motif_midi);
+  MUSIC.motif_midi.forEach((m, i) => {
+    const n = el("div", null, null, motif);
+    Object.assign(n.style, { position: "absolute", left: i * 88 + "px", top: (1 - (m - lo) / (hi - lo)) * 80 + "px", width: "70px", height: "28px", borderRadius: "14px", background: "var(--panel2)" });
+    ft(n, { background: "#2c2838" }, { background: "#ff8a5b", duration: .12 }, T("f4", .25 + i * .2));
+  });
+  span("#co-motif", T("f4", 0), T("f4", 2.3));
+  q = ppt("12-phone-take", "record"); tap(q, T("f4", 1.9));
+  show("13-phone-countin", T("f4", 2.1));
+  for (let i = 0; i < 4; i++) cue("tick", T("f4", 2.15 + i * 60 / MUSIC.bpm), { gain: .55 });
+  focus(ppt("14-phone-recording", "rec"), 1.45, T("f4", 2.6), 1.0);
+  show("14-phone-recording", T("f4", 4.0)); show("14b-phone-recording", T("f5", .2));
+
+  // f5: consent, then submit
+  show("15-phone-consent", T("f5", .9));
+  q = ppt("15-phone-consent", "consent"); tap(q, T("f5", 1.6));
+  q = ppt("15-phone-consent", "submit"); tap(q, T("f5", 2.3));
+  show("16-phone-submitted", T("f5", 2.6));
+  reset(T("f5", 2.8), .9);
+
+  // f6: the host's roster fills in live
+  show("04-host-roster-1", T("f6", -.3)); show("04-host-roster-2", T("f6", .9)); show("05-host-ready", T("f6", 2.0));
+  focus(dpt("05-host-ready", "roster"), 1.45, T("f6", 0), 1.1);
+  span("#co-sse", T("f6", .7), T("f7", -.1));
+  cue("tick", T("f6", .9), { gain: .4 }); cue("tick", T("f6", 2.0), { gain: .4 });
+
+  // f7: double-click finalize -> exactly one job
+  p = dpt("05-host-ready", "finalize");
+  focus({ x: p.x + 120, y: p.y - 80 }, 1.7, T("f7", -.1), 1.0);
+  tl.set("#cursor", { x: p.x + 200, y: p.y + 160 }, T("f7", -.2)); CUR = { x: p.x + 200, y: p.y + 160 };
+  fadeIn("#cursor", T("f7", -.2), .2);
+  cursorTo(p, T("f7", 0), .7); click(p, T("f7", .85)); click(p, T("f7", 1.05));
+  span("#co-job", T("f7", 1.5), T("f8", -.1));
+  $("#jobs").textContent = CAP.jobsCreated;
+
+  // f8: six honest steps, real timings
+  reset(T("f8", -.3), .9); fadeOut("#cursor", T("f8", -.3), .2);
+  show("07-gen-done", T("f8", -.2));
+  const dm = CAP.job.model_metadata.durations_ms, steps = [["Creative brief", dm.brief], ["Album cover", dm.art], ["Instrumental", dm.music], ["Mixing the voices", dm.mix]];
+  const maxMs = Math.max(...steps.map(s => s[1]));
+  steps.forEach(([name, ms], i) => {
+    const r = el("div", null, `<span class="ck">✓</span><span>${name}</span><span class="track"><span class="fill" style="display:block"></span></span><span class="ms">${ms} ms</span>`, $("#steps"));
+    ft(r, { opacity: 0, x: 20 }, { opacity: 1, x: 0 }, T("f8", .2 + i * .45));
+    ft(r.querySelector(".fill"), { scaleX: 0 }, { scaleX: ms / maxMs, duration: .5 }, T("f8", .35 + i * .45));
+  });
+  el("div", null, `<span></span><span style="color:var(--accent2)">Total</span><span></span><span class="ms" style="color:var(--fg)">${(dm.total / 1000).toFixed(2)} s</span>`, $("#steps"));
+  ft("#steps > div:last-child", { opacity: 0 }, { opacity: 1 }, T("f8", 2.2));
+  span("#co-steps", T("f8", 0), T("f9", -.1));
+  focus(dpt("07-gen-done", "gen"), 1.0, T("f8", 0), .01);
+  win({ x: 70, y: 250, scale: .56 }, T("f8", -.2), .8); phone(PH_OUT, T("f8", -.2), .8);
+
+  // f9: the reveal, with the real song
+  win(A, T("f9", -.2), .9);
+  show("08-reveal", T("f9", -.1));
+  cue("shimmer", T("f9", 0), { gain: .6 });
+  p = dpt("08-reveal", "play", A);
+  tl.set("#cursor", { x: p.x + 160, y: p.y + 200 }, T("f9", .1)); CUR = { x: p.x + 160, y: p.y + 200 };
+  fadeIn("#cursor", T("f9", .1), .2); cursorTo(p, T("f9", .2), .6); click(p, TE("f9", .05));
+  show("09-reveal-playing", TE("f9", .15), .15); fadeOut("#cursor", TE("f9", .8));
+  const SONG_AT = TE("f9", .25); window.__song = SONG_AT;          // master.py lays the song here
+  focus(dpt("08-reveal", "cover", A), 1.12, TE("f9", .3), 6.5);
+  const sw = $("#songwave"); PEAKS.song.forEach(v => { const b = el("i", null, null, sw); b.style.height = 8 + v * 84 + "px"; });
+  const swBars = [...sw.children];
+  span("#songwave", TE("f9", .4), T("f10", 3.2)); span("#songlbl", TE("f9", .4), T("f10", 3.2));
+  E.onFrame(t => { const k = Math.floor(((t - SONG_AT) / 30) * swBars.length); swBars.forEach((b, i) => b.classList.toggle("p", i <= k && t >= SONG_AT)); });
+
+  // f10: measured numbers + mix report
+  const full = CAP.shots["08b-reveal-full"], scroll = full.vh - 1000;
+  show("08b-reveal-full", T("f10", -.2), .3);
+  ft(imgs["08b-reveal-full"], { y: 0 }, { y: -scroll, duration: 2.4, ease: "power2.inOut" }, T("f10", .1));
+  reset(T("f10", -.2), .8);
+  const mr = CAP.job.mix_report;
+  $("#mixp").innerHTML = `${mr.included} of ${mr.voices.length} voices included<br>crowd ${mr.crowd_rms_db.toFixed(1)} dB · backing ${mr.backing_rms_db.toFixed(1)} dB<br><span class="mono" style="font-size:22px;color:var(--muted)">chorus enters at ${mr.chorus_entries_s.join(" s, ")} s</span>`;
+  span("#co-mix", T("f10", .8), FLOW1 - .1);
+
+  // =========== AUDIO ENGINE ===========
+  const DSP0 = T("t1") - .35, DSP1 = T("a1") - .35;
+  span("#s-dsp", DSP0, DSP1);
+  ft("#dsp-h", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .8 }, T("t1", 0));
+  const nodeBox = $("#dspnodes");
+  const mk = (x, y, w, t, s, lang) => { const n = el("div", "node", `<div class="t">${t}</div><div class="s">${s}</div>${lang ? `<span class="lang">${lang}</span>` : ""}`, nodeBox); Object.assign(n.style, { left: x + "px", top: y + "px", width: w + "px" }); return n; };
+  const arrow = (x, y, w, at) => { const a = el("div", "arrow", null, nodeBox); Object.assign(a.style, { left: x + "px", top: y + "px", width: w + "px" }); ft(a, { scaleX: 0 }, { scaleX: 1, duration: .4 }, at); fadeOut(a, T("t3", -.3)); };
+  // t1: text in, crowd bounced
+  const lyria = mk(1180, 420, 420, "Text-to-music model", "prompt → instrumental");
+  span(lyria, T("t1", 1.2), T("t2", -.3));
+  const ex = el("div", "serif", "So we mix the humans in ourselves.", nodeBox);
+  Object.assign(ex.style, { position: "absolute", left: "120px", top: "640px", fontSize: "56px", fontStyle: "italic", color: "var(--accent2)" });
+  span(ex, T("t1", 3.6), T("t2", -.3));
+  fadeOut("#dsp-h", T("t2", -.3));
+  // t2: decode -> analyze -> pitch
+  const v = mr.voices;
+  const pipe = [
+    [140, "3 browser takes", "webm / mp4 / ogg", ""],
+    [560, "Decode", "44.1 kHz mono WAV", "FFMPEG"],
+    [980, "Analyze", `onsets ${v.map(x => x.onset_s.toFixed(2)).join(" · ")} s`, "RUST"],
+    [1400, "YIN pitch", "median pitch, voiced ratio", "C"],
+  ];
+  const pnodes = pipe.map(([x, t, s, l], i) => { const n = mk(x, 300, 380, t, s, l); ft(n, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("t2", .2 + i * .9)); if (i) arrow(x - 40, 352, 40, T("t2", .1 + i * .9)); return n; });
+  pnodes.forEach(n => ft(n, { opacity: 1 }, { opacity: .45, duration: .4 }, T("t3", -.2)));
+  // t3: align to the downbeat, then the crowd bus
+  const al = $("#align"); fadeIn(al, T("t3", 0));
+  const lanes = PEAKS.mics.map((pk, i) => {
+    const w = el("div", "wave", null, al); w.style.top = i * 110 + "px"; w.style.left = "0px";
+    w.style.gap = "1px"; pk.forEach(x => { const b = el("i", null, null, w); b.style.width = "3px"; b.style.height = 4 + x * 80 + "px"; });
+    return w;
+  });
+  const downbeat = el("div", null, null, al); Object.assign(downbeat.style, { position: "absolute", left: "240px", top: "-20px", width: "3px", height: "360px", background: "var(--accent)" });
+  const dbl = el("div", "mono", "downbeat", al); Object.assign(dbl.style, { position: "absolute", left: "252px", top: "-24px", fontSize: "18px", color: "var(--accent)" });
+  const off = [180, -90, 300];
+  lanes.forEach((w, i) => ft(w, { x: off[i] + 240 - 60 }, { x: 240 - 60, duration: 1.2, ease: "power3.inOut" }, T("t3", 1.2)));
+  const tags = ["high-pass", "align to the downbeat", "loudness match", "equal-power bus", "Freeverb · C++"];
+  tags.forEach((t, i) => { const g = el("div", "pill", t, al); Object.assign(g.style, { position: "absolute", left: "1180px", top: i * 66 + "px", fontSize: "24px", padding: "10px 20px" }); if (i === 4) g.style.borderColor = "var(--accent)"; ft(g, { opacity: 0, x: 20 }, { opacity: 1, x: 0 }, T("t3", .4 + i * 1.1)); });
+  lanes.forEach((w, i) => ft(w, { y: i * 110 }, { y: 110, duration: .9, ease: "power3.inOut" }, T("t3", 5.2)));
+  fadeOut(al, T("t4", -.25));
+  pnodes.forEach(n => fadeOut(n, T("t4", -.25)));
+  // t4: duck the backing under the chorus; the test
+  const dk = $("#duck"); fadeIn(dk, T("t4", 0));
+  const sw2 = el("div", "wave", null, dk); sw2.style.top = "40px"; sw2.style.width = "1600px"; sw2.style.gap = "1px";
+  PEAKS.song.forEach(x => { const b = el("i", null, null, sw2); b.style.width = "2.3px"; b.style.background = "#4b4559"; b.style.height = 4 + x * 150 + "px"; });
+  const svgNS = "http://www.w3.org/2000/svg", svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", 1600); svg.setAttribute("height", 420); svg.style.position = "absolute"; svg.style.left = 0; svg.style.top = 0; dk.append(svg);
+  const X = s => s / mr.duration_s * 1600, path = document.createElementNS(svgNS, "path");
+  const ys = 260, yd = 330;
+  let dpath = `M0 ${ys}`; for (const c of mr.chorus_entries_s) dpath += ` L${X(c) - 30} ${ys} L${X(c)} ${yd} L${X(c) + 220} ${yd} L${X(c) + 260} ${ys}`; dpath += ` L1600 ${ys}`;
+  path.setAttribute("d", dpath); path.setAttribute("fill", "none"); path.setAttribute("stroke", "#ff8a5b"); path.setAttribute("stroke-width", "4"); svg.append(path);
+  const len = 2200; path.style.strokeDasharray = len;
+  ft(path, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.2, ease: "power1.inOut" }, T("t4", .2));
+  for (const c of mr.chorus_entries_s) { const l = el("div", "mono", `chorus · ${c} s`, dk); Object.assign(l.style, { position: "absolute", left: X(c) + "px", top: "350px", fontSize: "20px", color: "var(--accent2)" }); ft(l, { opacity: 0 }, { opacity: 1 }, T("t4", .8)); }
+  const bl = el("div", "mono", "backing level", dk); Object.assign(bl.style, { position: "absolute", left: "0", top: "222px", fontSize: "20px", color: "var(--accent)" });
+  span("#co-test", T("t4", 2.6), DSP1 - .1);
+  cue("impact", T("t4", 2.9), { gain: .5 });
+
+  // =========== ARCHITECTURE ===========
+  const AR0 = T("a1") - .35, AR1 = T("p0") - .35;
+  span("#s-arch", AR0, AR1);
+  const ab = $("#archbox");
+  const N = {
+    browser: [210, 560, 270, "Browser", "phone or laptop", ""],
+    web: [640, 360, 400, "Web + API", "Next.js · SSE · signed URLs", "TYPESCRIPT"],
+    worker: [1380, 360, 420, "Generation worker", "providers · pipeline", "PYTHON"],
+    dsp: [1380, 780, 420, "chorus-dsp", "mix · analyze · synth", "RUST · C · C++"],
+    ops: [640, 780, 400, "Ops", "migrations · retention", "RUBY"],
+    db: [960, 560, 340, "Postgres", "rows · LISTEN/NOTIFY", "SQL"],
+  };
+  const nodes = {};
+  for (const [k, [x, y, w, t, s, lang]] of Object.entries(N)) {
+    const n = el("div", "node", `<div class="t">${t}</div><div class="s">${s}</div>${lang ? `<span class="lang">${lang}</span>` : ""}`, ab);
+    Object.assign(n.style, { left: x - w / 2 + "px", top: y - 50 + "px", width: w + "px" }); nodes[k] = n;
+  }
+  nodes.db.style.borderColor = "var(--cool)";
+  const C = k => ({ x: N[k][0], y: N[k][1] });
+  const edges = [["browser", "web"], ["web", "db"], ["worker", "db"], ["dsp", "db"], ["ops", "db"]];
+  const edgeEls = edges.map(([a, b]) => {
+    const A1 = C(a), B1 = C(b), dx = B1.x - A1.x, dy = B1.y - A1.y, e = el("div", "edge", null, ab);
+    Object.assign(e.style, { left: A1.x + "px", top: A1.y + "px", width: Math.hypot(dx, dy) + "px", transform: `rotate(${Math.atan2(dy, dx)}rad)`, zIndex: -1 }); ab.prepend(e);
+    ft(e, { opacity: 0 }, { opacity: 1 }, T("a1", 1.2)); return e;
+  });
+  const order = ["db", "web", "worker", "dsp", "ops", "browser"];
+  order.forEach((k, i) => ft(nodes[k], { opacity: 0, scale: .9 }, { opacity: 1, scale: 1 }, T("a1", .3 + i * .25)));
+  const elbl = (txt, x, y, at) => { const l = el("div", "elbl", txt, ab); Object.assign(l.style, { left: x + "px", top: y + "px" }); fadeIn(l, at); };
+  elbl("rows", 860, 440, T("a1", 4.2)); elbl("files", 760, 690, T("a1", 4.8)); elbl("CLI → JSON", 1190, 690, T("a1", 5.4));
+  const lit = (k, at, d = 1.6) => { tl.fromTo(nodes[k], { borderColor: "#2c2838" }, { borderColor: "#ff8a5b", duration: .2, immediateRender: false }, at); tl.fromTo(nodes[k], { borderColor: "#ff8a5b" }, { borderColor: "#2c2838", duration: .3, immediateRender: false }, at + d); };
+  lit("web", T("a2", 0)); lit("worker", T("a2", 2.2)); lit("ops", T("a2", 4.6)); lit("dsp", T("a2", 6.4), 1.2);
+  // a3: NOTIFY pulses
+  const pulse = (from, to, at, lbl) => {
+    const P1 = el("div", "pulse", null, ab), a = C(from), b = C(to);
+    tl.fromTo(P1, { left: a.x, top: a.y, opacity: 1 }, { left: b.x, top: b.y, duration: .9, ease: "power1.inOut", immediateRender: false }, at);
+    tl.fromTo(P1, { opacity: 1 }, { opacity: 0, duration: .2, immediateRender: false }, at + .9);
+    cue("tick", at, { gain: .35 });
+    if (lbl) elbl(lbl, (a.x + b.x) / 2 + 20, (a.y + b.y) / 2 - 44, at);
+  };
+  pulse("db", "worker", T("a3", .4), "NOTIFY job_queued"); pulse("db", "web", T("a3", 1.4)); elbl("NOTIFY room_changed", 560, 470, T("a3", 1.4)); pulse("web", "browser", T("a3", 2.3), "SSE");
+  pulse("db", "worker", T("a3", 3.3)); pulse("db", "web", T("a3", 3.6)); pulse("web", "browser", T("a3", 4.4));
+  const ht = el("div", "callout", `<h4>session_events · hypertable</h4><p>TimescaleDB, the engine behind <span style="color:var(--accent2)">Tiger Data</span></p><div class="code">create_hypertable('session_events', by_range('occurred_at'))</div>`, ab);
+  Object.assign(ht.style, { left: "1160px", top: "480px", width: "700px", zIndex: 5 });
+  span(ht, T("a3", 3.8), AR1 - .1);
+
+  // =========== SPONSORS ===========
+  const SP0 = T("p0") - .35, SP1 = T("c1") - .35;
+  span("#s-sp", SP0, SP1);
+  const sponsors = [
+    ["p_gemini", "Gemini", "chorus line + creative brief, schema-validated JSON", "GEMINI_API_KEY"],
+    ["p_nano", "Nano Banana", "abstract square album cover", "GEMINI_API_KEY"],
+    ["p_lyria", "Lyria", "instrumental in C major, 96 BPM", "GEMINI_API_KEY"],
+    ["p_nimble", "Nimble", "theme inspiration links", "NIMBLE_API_KEY"],
+    ["p_snow", "Snowflake", "analytics across all rooms", "SNOWFLAKE_*"],
+    ["p_sentry", "Sentry", "errors only: no audio, names, lyrics", "SENTRY_DSN"],
+  ];
+  const cards = sponsors.map(([id, n, r, k], i) => {
+    const c = el("div", "card", `<div class="n">${n}</div><div class="r">${r}</div><div class="k">${k}</div>`, $("#cards"));
+    Object.assign(c.style, { left: 130 + (i % 3) * 570 + "px", top: 300 + Math.floor(i / 3) * 290 + "px" });
+    ft(c, { opacity: 0, y: 24 }, { opacity: .35, y: 0 }, T("p0", .3 + i * .12));
+    tl.fromTo(c, { opacity: .35, borderColor: "#2c2838" }, { opacity: 1, borderColor: "#ff8a5b", duration: .3, immediateRender: false }, T(id, -.1));
+    cue("tick", T(id, -.05), { gain: .45 });
+    return c;
+  });
+  // the honest part: the real labels from this room's page
+  cards.forEach((c, i) => { const fb = el("div", "fb", "local fallback in this video", c); ft(fb, { opacity: 0 }, { opacity: 1 }, T("p_honest", .3 + i * .08)); });
+  cards.forEach(c => ft(c, { opacity: 1 }, { opacity: .12, duration: .5 }, T("p_honest", 2.6)));
+  fadeOut("#s-sp .h", T("p_honest", 2.6));
+  ft(crop, { opacity: 0, y: 40, scale: .9 }, { opacity: 1, y: 0, scale: 1, duration: .7 }, T("p_honest", 2.7));
+  fadeIn("#honest", T("p_honest", 4.6));
+
+  // =========== COMPLETION ===========
+  const DN0 = T("c1") - .35, DN1 = T("l1") - .35;
+  span("#s-done", DN0, DN1);
+  const rows = [
+    ["Rust · C · C++ audio engine", "4 tests"], ["Python generation worker", "25 tests"], ["TypeScript web + API", "17 tests"],
+    ["Ruby retention sweep", "1 test"], ["Playwright: 3 browsers, fake mics, real mix", "2 e2e"],
+  ];
+  rows.forEach(([a, b], i) => { const r = el("div", "row", `<span class="ok">✓</span><span>${a}</span><span class="n">${b}</span>`, $("#rows")); r.style.top = 280 + i * 92 + "px"; ft(r, { opacity: 0, x: -30 }, { opacity: 1, x: 0 }, T("c1", 1.2 + i * .5)); cue("tick", T("c1", 1.2 + i * .5), { gain: .4 }); });
+  const ci = el("div", "mono", "GitHub Actions · dsp ✓ · worker ✓ · web ✓", $("#rows")); Object.assign(ci.style, { position: "absolute", left: "220px", top: "750px", fontSize: "26px", color: "var(--cool)" }); fadeIn(ci, T("c1", 4.8));
+  ft("#rows", { opacity: 1 }, { opacity: .25, duration: .4 }, T("c2", -.2));
+  ["🔒 Private storage, never served", "No public URL for any voice", "Deleted after 24 hours", "No audio to analytics or monitoring"].forEach((t, i) => {
+    const g = el("div", "pill", t, $("#priv")); ft(g, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("c2", .1 + i * .5));
+  });
+
+  // =========== LEARNING ===========
+  const LN0 = T("l1") - .35, LN1 = T("e1") - .5;
+  span("#s-learn", LN0, LN1);
+  [["MediaRecorder capture", "every browser picks its own codec; we decode them all"], ["DSP in three languages", "Rust calling C and C++ through one build script"], ["Postgres as a message bus", "LISTEN/NOTIFY + SKIP LOCKED instead of a queue service"]].forEach(([a, b], i) => {
+    const r = el("div", null, `<div style="font:600 46px Geist">${a}</div><div style="font:400 28px Geist;color:var(--muted);margin-top:6px">${b}</div>`, $("#learn"));
+    ft(r, { opacity: 0, x: -30 }, { opacity: 1, x: 0 }, T("l1", .5 + i * 1.9));
+  });
+
+  // =========== END ===========
+  fadeIn("#s-end", T("e1") - .45, .6);
+  cue("impact", T("e1", .05), { gain: .6 });
+  $$("#s-end .tag span").forEach((s, i) => ft(s, { opacity: 0, y: 24 }, { opacity: 1, y: 0 }, T("e1", 1.0 + i * .55)));
+  ft("#gh", { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("e2", 0));
+  fadeOut("#stage", E.manifest().duration - .6, .6);
+});
+})();
+</script>
+</body>
+</html>

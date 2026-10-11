@@ -52,3 +52,10 @@ next-env.d.ts
 /playwright-report/
 /dsp/target/
 /.claude/
+
+# demo video build: venv, captured footage, generated audio and renders
+/video/.venv/
+/video/demo/capture/
+/video/demo/audio/
+/video/demo/out/
+__pycache__/
