@@ -1,0 +1,19 @@
+# Local stand-in for Tiger Data: the same TimescaleDB engine Tiger Cloud runs.
+# Point DATABASE_URL at a Tiger Cloud service to use the hosted one instead.
+services:
+  db:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_PASSWORD: crowdchorus
+      POSTGRES_DB: crowdchorus
+    ports:
+      - "5434:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 30
+
+volumes:
+  dbdata:
