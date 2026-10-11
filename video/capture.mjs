@@ -162,15 +162,16 @@ await shot(host, "08-reveal", {
   play: host.getByRole("button", { name: /^Play / }),
   labels: host.getByRole("list", { name: "Fallback assets used" }),
 });
+await host.getByRole("button", { name: /^Play / }).click();
+await sleep(1500);
+await shot(host, "09-reveal-playing", { play: host.getByRole("button", { name: /^Pause / }) });
+// full page while playing, so the video's pan matches the song under it
 await shot(host, "08b-reveal-full", {
   metrics: host.locator("section[aria-labelledby=metrics-h]"),
   insp: host.locator("section[aria-labelledby=insp-h]"),
   analytics: host.locator("section[aria-labelledby=analytics-h]"),
   labels: host.getByRole("list", { name: "Fallback assets used" }),
 }, true);
-await host.getByRole("button", { name: /^Play / }).click();
-await sleep(1500);
-await shot(host, "09-reveal-playing", { play: host.getByRole("button", { name: /^Pause / }) });
 await guests[0].g.goto(`${BASE}/s/${code}`);
 await shot(guests[0].g, "18-phone-reveal", {}, true);
 

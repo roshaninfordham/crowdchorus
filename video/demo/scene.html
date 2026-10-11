@@ -107,8 +107,8 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink);color
 
   <!-- HOOK -->
   <section class="sec" id="s-h1"><div class="center">
-    <div class="big" id="h1a">Every group has a song in it.</div>
-    <div class="chips"><div class="chip">instruments<span class="strike"></span></div><div class="chip">a studio<span class="strike"></span></div><div class="chip">weeks of edits<span class="strike"></span></div></div>
+    <div class="big" id="h1a">Making a song together takes…</div>
+    <div class="chips"><div class="chip">instruments<span class="strike"></span></div><div class="chip">a studio<span class="strike"></span></div><div class="chip">weeks<span class="strike"></span></div></div>
   </div></section>
   <section class="sec" id="s-h2">
     <div id="prompt"><div class="lbl">ONE PERSON · ONE PROMPT</div><div class="box"><span id="typed"></span><span id="caret">▍</span></div></div>
@@ -134,7 +134,8 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink);color
     <div class="callout" id="co-job" style="left:1000px;top:740px;width:860px"><h4>Two clicks → one job</h4><p>Jobs created for this room: <span class="mono" id="jobs" style="color:var(--accent2)">1</span></p><div class="code">INSERT … ON CONFLICT (room_id) WHERE status &lt;&gt; 'failed' DO NOTHING</div></div>
     <div class="callout" id="co-steps" style="left:1010px;top:330px;width:830px"><h4>Measured in this run</h4><div class="steps" id="steps"></div></div>
     <div class="callout" id="co-mix" style="left:1130px;top:560px;width:640px"><h4>chorus-dsp mix report</h4><p id="mixp"></p></div>
-    <div id="songlbl">▶ The real song from this room · 3 voices</div>
+    <div class="callout" id="co-standin" style="left:700px;top:28px;width:520px;text-align:center;padding:10px 18px"><h4 style="margin:0">Stand-in voices: TTS via virtual mics</h4></div>
+    <div id="songlbl">▶ The real mix from this room · 3 stand-in voices (TTS through virtual mics)</div>
     <div id="songwave"></div>
   </section>
 
@@ -149,7 +150,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink);color
 
   <!-- TECH: ARCHITECTURE -->
   <section class="sec" id="s-arch">
-    <div class="h" style="font-size:60px">Five languages. One repo.<br><em>Zero</em> service-to-service network calls.</div>
+    <div class="h" style="font-size:60px">Six languages. One repo.<br><em>Zero</em> service-to-service network calls.</div>
     <div id="archbox" style="position:absolute;inset:0"></div>
   </section>
 
@@ -193,6 +194,8 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink);color
 const get = u => fetch(u).then(r => r.json());
 const [CAP, PEAKS] = await Promise.all([get("capture/shots.json"), get("capture/peaks.json")]);
 const MUSIC = await get("capture/music.json");
+// offsets inside a line were choreographed against these line lengths; they scale with the narration
+const REF = await get("choreo_durations.json");
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const el = (tag, cls, html, parent) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.append(e); return e; };
 
@@ -210,7 +213,7 @@ Object.assign(crop.style, { width: lb.w * CS + 24 + "px", height: lb.h * CS + 24
   background: `#0c0b10 url(capture/08-reveal.png) no-repeat`, backgroundSize: `${1600 * CS}px auto`, backgroundPosition: `${-(lb.x * CS) + 12}px ${-(lb.y * CS) + 12}px` });
 
 Scene.boot("audio/manifest.json", (tl, E) => {
-  const T = (id, o = 0) => E.at(id, o), TE = (id, o = 0) => E.end(id, o);
+  const T = (id, o = 0) => E.at(id, o > 0 ? o * Math.min(1, E.dur(id) / REF[id]) : o), TE = (id, o = 0) => E.end(id, o);
   // entrances start hidden: frames render in order, so a tween that hasn't started yet leaves the CSS state showing
   const ft = (t, from, to, at) => { if (from.opacity === 0) tl.set(t, from, 0); return tl.fromTo(t, from, { duration: .45, ease: "power3.out", ...to, immediateRender: false }, at); };
   const fadeIn = (t, at, d = .45) => ft(t, { opacity: 0 }, { opacity: 1, duration: d }, at);
@@ -243,9 +246,9 @@ Scene.boot("audio/manifest.json", (tl, E) => {
 
   // ---- captions (spoken spellings back to written ones)
   const clean = s => s.replace(/Post gress/g, "Postgres").replace(/Nah no/g, "Nano").replace(/free verb/g, "Freeverb").replace(/F F mpeg/g, "FFmpeg")
-    .replace(/C plus plus/g, "C++").replace(/Next J S/g, "Next.js").replace(/Q\.R\./g, "QR").replace(/A\.I\./g, "AI").replace(/plug in/g, "plug-in")
+    .replace(/C plus plus/g, "C++").replace(/Next J S/g, "Next.js").replace(/Q\.R\./g, "QR.").replace(/A\.I\./g, "AI").replace(/plug in/g, "plug-in")
     .replace(/six letter/g, "six-letter").replace(/four beat count in/g, "four-beat count-in").replace(/three browser/g, "three-browser")
-    .replace(/twenty four hours/g, "24 hours").replace(/listen and notify/g, "LISTEN/NOTIFY").replace(/command line/g, "command-line").replace(/schema validated/g, "schema-validated");
+    .replace(/text to speech/g, "text-to-speech").replace(/listen and notify/g, "LISTEN/NOTIFY").replace(/command line/g, "command-line").replace(/schema validated/g, "schema-validated");
   for (const l of E.manifest().lines) {
     const c = el("div", null, clean(l.text), $("#cap"));
     tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: .15, immediateRender: false }, l.start - .05);
@@ -355,6 +358,8 @@ Scene.boot("audio/manifest.json", (tl, E) => {
   focus(ppt("14-phone-recording", "rec"), 1.45, T("f4", 2.6), 1.0);
   show("14-phone-recording", T("f4", 4.0)); show("14b-phone-recording", T("f5", .2));
 
+  span("#co-standin", T("f4", 2.0), T("f6", -.2));
+
   // f5: consent, then submit
   show("15-phone-consent", T("f5", .9));
   q = ppt("15-phone-consent", "consent"); tap(q, T("f5", 1.6));
@@ -380,7 +385,7 @@ Scene.boot("audio/manifest.json", (tl, E) => {
   // f8: six honest steps, real timings
   reset(T("f8", -.3), .9); fadeOut("#cursor", T("f8", -.3), .2);
   show("07-gen-done", T("f8", -.2));
-  const dm = CAP.job.model_metadata.durations_ms, steps = [["Creative brief", dm.brief], ["Album cover", dm.art], ["Instrumental", dm.music], ["Mixing the voices", dm.mix]];
+  const dm = CAP.job.model_metadata.durations_ms, steps = [["Creative brief", dm.brief], ["Album cover", dm.art], ["Prepared backing", dm.music], ["Mixing the voices", dm.mix]];
   const maxMs = Math.max(...steps.map(s => s[1]));
   steps.forEach(([name, ms], i) => {
     const r = el("div", null, `<span class="ck">✓</span><span>${name}</span><span class="track"><span class="fill" style="display:block"></span></span><span class="ms">${ms} ms</span>`, $("#steps"));
@@ -402,7 +407,7 @@ Scene.boot("audio/manifest.json", (tl, E) => {
   fadeIn("#cursor", T("f9", .1), .2); cursorTo(p, T("f9", .2), .6); click(p, TE("f9", .05));
   show("09-reveal-playing", TE("f9", .15), .15); fadeOut("#cursor", TE("f9", .8));
   const SONG_AT = TE("f9", .25); window.__song = SONG_AT;          // master.py lays the song here
-  focus(dpt("08-reveal", "cover", A), 1.12, TE("f9", .3), 6.5);
+  focus(dpt("08-reveal", "cover", A), 1.12, TE("f9", .3), 4.6);
   const sw = $("#songwave"); PEAKS.song.forEach(v => { const b = el("i", null, null, sw); b.style.height = 8 + v * 84 + "px"; });
   const swBars = [...sw.children];
   span("#songwave", TE("f9", .4), T("f10", 3.2)); span("#songlbl", TE("f9", .4), T("f10", 3.2));
@@ -553,16 +558,16 @@ Scene.boot("audio/manifest.json", (tl, E) => {
     ["Ruby retention sweep", "1 test"], ["Playwright: 3 browsers, fake mics, real mix", "2 e2e"],
   ];
   rows.forEach(([a, b], i) => { const r = el("div", "row", `<span class="ok">✓</span><span>${a}</span><span class="n">${b}</span>`, $("#rows")); r.style.top = 280 + i * 92 + "px"; ft(r, { opacity: 0, x: -30 }, { opacity: 1, x: 0 }, T("c1", 1.2 + i * .5)); cue("tick", T("c1", 1.2 + i * .5), { gain: .4 }); });
-  const ci = el("div", "mono", "GitHub Actions · dsp ✓ · worker ✓ · web ✓", $("#rows")); Object.assign(ci.style, { position: "absolute", left: "220px", top: "750px", fontSize: "26px", color: "var(--cool)" }); fadeIn(ci, T("c1", 4.8));
+  const ci = el("div", "mono", "GitHub Actions · dsp ✓ · worker + retention ✓ · web + e2e ✓", $("#rows")); Object.assign(ci.style, { position: "absolute", left: "220px", top: "750px", fontSize: "26px", color: "var(--cool)" }); fadeIn(ci, T("c1", 4.8));
   ft("#rows", { opacity: 1 }, { opacity: .25, duration: .4 }, T("c2", -.2));
   ["🔒 Private storage, never served", "No public URL for any voice", "Deleted after 24 hours", "No audio to analytics or monitoring"].forEach((t, i) => {
-    const g = el("div", "pill", t, $("#priv")); ft(g, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("c2", .1 + i * .5));
+    const g = el("div", "pill", t, $("#priv")); g.style.fontSize = "25px"; g.style.padding = "14px 24px"; ft(g, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, T("c2", .1 + i * .5));
   });
 
   // =========== LEARNING ===========
   const LN0 = T("l1") - .35, LN1 = T("e1") - .5;
   span("#s-learn", LN0, LN1);
-  [["MediaRecorder capture", "every browser picks its own codec; we decode them all"], ["DSP in three languages", "Rust calling C and C++ through one build script"], ["Postgres as a message bus", "LISTEN/NOTIFY + SKIP LOCKED instead of a queue service"]].forEach(([a, b], i) => {
+  [["MediaRecorder capture", "Chrome's webm and Safari's mp4 both decode through one FFmpeg path"], ["DSP in three languages", "Rust calling C and C++ through one build script"], ["Postgres as a message bus", "LISTEN/NOTIFY + SKIP LOCKED instead of a queue service"]].forEach(([a, b], i) => {
     const r = el("div", null, `<div style="font:600 46px Geist">${a}</div><div style="font:400 28px Geist;color:var(--muted);margin-top:6px">${b}</div>`, $("#learn"));
     ft(r, { opacity: 0, x: -30 }, { opacity: 1, x: 0 }, T("l1", .5 + i * 1.9));
   });

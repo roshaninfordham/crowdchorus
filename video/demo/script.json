@@ -1,203 +1,203 @@
 {
  "id": "crowdchorus-demo",
  "voice": "af_heart",
- "tail": 2.5,
+ "tail": 1.4,
  "lines": [
   {
    "id": "h1",
-   "text": "Every group has a song in it. But making one together takes instruments, a studio, and weeks.",
-   "speed": 1.05,
+   "text": "Making a song together takes instruments, a studio, and weeks.",
+   "speed": 1.12,
    "gap": 0.35
   },
   {
    "id": "h2",
-   "text": "A.I. music tools help one person, typing one prompt. The song belongs to the prompt, not the people.",
-   "speed": 1.05,
-   "gap": 0.4
+   "text": "A.I. music tools serve one person, typing one prompt.",
+   "speed": 1.12,
+   "gap": 0.35
   },
   {
    "id": "h3",
-   "text": "This is CrowdChorus. One room. Many voices. One original song.",
+   "text": "This is CrowdChorus. One room. Many voices. One song.",
    "speed": 0.98,
-   "gap": 0.8
+   "gap": 0.45
   },
   {
    "id": "f1",
-   "text": "A host picks a nickname, a mood, and a theme, and opens a room.",
-   "speed": 1.1,
+   "text": "A host picks a mood and a theme, and opens a room.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f2",
-   "text": "Friends join from their phones, with a six letter code or the Q.R. code. No accounts. No installs.",
-   "speed": 1.1,
+   "text": "Friends join from their phones, by code or Q.R. No accounts. No installs.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f3",
-   "text": "The room gets one original chorus line, so everyone sings the same words in the same key.",
-   "speed": 1.1,
+   "text": "Everyone gets the same original line, in the same key.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f4",
-   "text": "A pitch guide plays the melody. Then a four beat count in, and six seconds to sing.",
-   "speed": 1.1,
+   "text": "A pitch guide, a four beat count in, and six seconds to sing.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f5",
-   "text": "Preview it, retry it, and nothing joins the mix until you agree.",
-   "speed": 1.1,
+   "text": "Nothing joins the mix until you agree.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f6",
-   "text": "The host watches the roster fill in live. Three browsers, three voices.",
-   "speed": 1.1,
+   "text": "The host's roster fills in live.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f7",
-   "text": "Finalize. Even a double click creates exactly one job. A Post gress unique index guarantees it.",
-   "speed": 1.1,
+   "text": "Finalize. Even a double click makes exactly one job.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f8",
-   "text": "Everyone watches six honest steps. The cover shows up the moment it exists.",
-   "speed": 1.1,
+   "text": "Brief, cover, backing, and mix, in two seconds.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "f9",
-   "text": "And here's the reveal.",
+   "text": "Here's the reveal.",
    "speed": 1.0,
-   "gap": 8.0
+   "gap": 5.0
   },
   {
    "id": "f10",
-   "text": "That's our three singers, over the backing, mixed on this laptop in two seconds.",
-   "speed": 1.05,
-   "gap": 0.6
+   "text": "Three text to speech stand-ins, mixed over the backing.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "t1",
-   "text": "Music models make instrumentals from text. They can't take a crowd's recordings. So we built the human part ourselves.",
-   "speed": 1.1,
+   "text": "Music models can't take a crowd's recordings. So we mix them ourselves.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "t2",
-   "text": "Every clip is decoded with F F mpeg and analyzed in Rust, with the YIN pitch detector written in C.",
-   "speed": 1.05,
+   "text": "F F mpeg decodes every take. Rust analyzes it, with YIN pitch detection in C.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "t3",
-   "text": "Each voice is filtered, aligned to the downbeat and loudness matched, then bussed through a free verb reverb in C plus plus.",
-   "speed": 1.1,
+   "text": "Each voice is aligned, loudness matched, and bussed through a free verb reverb in C plus plus.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "t4",
-   "text": "The backing ducks under the chorus. And a test proves that removing any one voice changes the mix.",
-   "speed": 1.1,
-   "gap": 0.6
+   "text": "The backing ducks under the chorus, and a test proves every voice changes the mix.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "a1",
-   "text": "Five languages, one repo, and no network calls between them. They meet at Post gress rows, files, and command line tools.",
-   "speed": 1.1,
+   "text": "Six languages, one repo, and no network calls between them.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "a2",
-   "text": "TypeScript runs the room. Python runs the generation worker. Ruby runs migrations and voice clip cleanup.",
-   "speed": 1.1,
+   "text": "TypeScript runs the room, Python the worker, Ruby the cleanup.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "a3",
-   "text": "Post gress listen and notify wakes the worker and streams live updates. Events land in a Timescale hypertable, the engine behind Tiger Data.",
-   "speed": 1.1,
-   "gap": 0.6
+   "text": "Post gress listen and notify connects them. Events land in Timescale, the engine behind Tiger Data.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "p0",
-   "text": "Every sponsor tool is a provider plug in, switched on by one environment variable.",
-   "speed": 1.1,
+   "text": "Every sponsor tool is a plug in, behind one environment variable.",
+   "speed": 1.12,
    "gap": 0.25
   },
   {
    "id": "p_gemini",
-   "text": "Gemini writes the chorus line and the creative brief, as schema validated output.",
-   "speed": 1.1,
+   "text": "Gemini writes the lyrics and the brief.",
+   "speed": 1.12,
    "gap": 0.2
   },
   {
    "id": "p_nano",
-   "text": "Nah no Banana paints an abstract album cover.",
-   "speed": 1.1,
+   "text": "Nah no Banana paints the cover.",
+   "speed": 1.12,
    "gap": 0.2
   },
   {
    "id": "p_lyria",
-   "text": "Lyria composes the instrumental in the room's key and tempo.",
-   "speed": 1.1,
+   "text": "Lyria composes the backing.",
+   "speed": 1.12,
    "gap": 0.2
   },
   {
    "id": "p_nimble",
-   "text": "Nimble searches the theme for inspiration.",
-   "speed": 1.1,
+   "text": "Nimble finds inspiration.",
+   "speed": 1.12,
    "gap": 0.2
   },
   {
    "id": "p_snow",
-   "text": "Snowflake runs the analytics across every room.",
-   "speed": 1.1,
+   "text": "Snowflake runs analytics.",
+   "speed": 1.12,
    "gap": 0.2
   },
   {
    "id": "p_sentry",
-   "text": "And Sentry catches errors, without ever seeing audio, names, or lyrics.",
-   "speed": 1.1,
+   "text": "Sentry catches errors, never audio.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "p_honest",
-   "text": "In this recording no keys are set, so each step runs a local fallback, and the page labels it. Nothing pretends to be generated.",
-   "speed": 1.1,
-   "gap": 0.6
+   "text": "With no keys set, like here, each step runs a labelled local fallback.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "c1",
-   "text": "It works end to end. Four test suites and a three browser Playwright run, all green in CI.",
-   "speed": 1.1,
+   "text": "Every test suite, plus a three browser Playwright run, is green in CI.",
+   "speed": 1.12,
    "gap": 0.3
   },
   {
    "id": "c2",
-   "text": "Voices stay private, never get a public link, and are deleted after twenty four hours.",
-   "speed": 1.1,
-   "gap": 0.6
+   "text": "Voices stay private, and are deleted after a day.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "l1",
-   "text": "Our stretch: browser audio capture, signal processing in three languages, and Post gress as a message bus.",
-   "speed": 1.1,
-   "gap": 0.6
+   "text": "Our stretch: signal processing in three languages, and Post gress as a message bus.",
+   "speed": 1.12,
+   "gap": 0.45
   },
   {
    "id": "e1",
    "text": "CrowdChorus. One room. Many voices. One original song.",
    "speed": 0.98,
-   "gap": 0.4
+   "gap": 0.35
   },
   {
    "id": "e2",
-   "text": "It's open source. Clone it, and sing.",
+   "text": "Open source. Clone it, and sing.",
    "speed": 1.0,
    "gap": 0.3
   }
