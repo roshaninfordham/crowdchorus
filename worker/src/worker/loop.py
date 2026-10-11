@@ -23,6 +23,8 @@ STALE_SQL = """
 SELECT * FROM generation_jobs
 WHERE status IN ('brief', 'generating_art', 'generating_music', 'mixing')
   AND locked_at < now() - interval '10 minutes'
+  AND (%(room)s::uuid IS NULL OR room_id = %(room)s::uuid)
+FOR UPDATE SKIP LOCKED
 """
 
 
@@ -33,10 +35,12 @@ def claim(conn, room_id=None) -> dict | None:
     return conn.execute(CLAIM_SQL, {"room": room_id}).fetchone()
 
 
-def recover_stale(conn) -> int:
-    stale = conn.execute(STALE_SQL).fetchall()
-    for job in stale:
-        fail(conn, job, job["status"], "worker_lost", job["model_metadata"] or {})
+def recover_stale(conn, room_id=None) -> int:
+    """Fail jobs a dead worker left mid-pipeline. Row locks keep two starting workers from both failing one."""
+    with conn.transaction():
+        stale = conn.execute(STALE_SQL, {"room": room_id}).fetchall()
+        for job in stale:
+            fail(conn, job, job["status"], "worker_lost", job["model_metadata"] or {})
     if stale:
         log.warning("failed %d stale job(s) as worker_lost", len(stale))
     return len(stale)
