@@ -74,7 +74,8 @@ test("results page shows cover, song, labelled fallbacks and metrics, and surviv
     await expect(page.getByText("Procedural cover: image model not configured")).toBeVisible();
     await expect(page.getByText("Template chorus line: no text model configured")).toBeVisible();
     await expect(page.getByRole("link", { name: "City lights essay" })).toHaveAttribute("href", "https://example.org/lights");
-    await expect(page.getByText("12.3 s")).toBeVisible(); // generation time from durations_ms.total
+    const measured = page.getByRole("region", { name: "Measured for this room" });
+    await expect(measured.getByText("12.3 s")).toBeVisible(); // generation time from durations_ms.total
     await expect(page.getByTestId("analytics-source")).toHaveText(/Source:|Local Postgres/);
     await page.reload();
   }
