@@ -1,4 +1,4 @@
-"""python -m worker [chorus --mood M [--theme T]]
+"""python -m worker [chorus --mood M [--theme T] | analytics]
 
 With no subcommand, runs the job loop. CLIs print exactly one JSON object on
 stdout; all logging goes to stderr.
@@ -20,6 +20,7 @@ def main(argv=None) -> int:
     ch = sub.add_parser("chorus", help="print one original chorus line as JSON")
     ch.add_argument("--mood", required=True, choices=music()["moods"])
     ch.add_argument("--theme", type=lambda s: s.strip()[:80] or None)
+    sub.add_parser("analytics", help="print aggregate analytics as JSON")
     args = parser.parse_args(argv)
     init_sentry()
 
@@ -28,6 +29,12 @@ def main(argv=None) -> int:
 
         line, source = chorus_line(args.mood, args.theme)
         print(json.dumps({"line": line, "source": source}))
+    elif args.cmd == "analytics":
+        from .analytics import report
+        from .db import connect
+
+        with connect() as conn:
+            print(json.dumps(report(conn)))
     else:
         from .loop import serve
 
