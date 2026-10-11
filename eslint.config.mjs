@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated test output, private media and other languages' trees.
+    "playwright-report/**",
+    "test-results/**",
+    "storage/**",
+    "dsp/**",
+    "worker/**",
   ]),
 ]);
 
