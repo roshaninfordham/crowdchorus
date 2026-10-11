@@ -64,4 +64,3 @@ export const span = <T,>(name: string, fn: () => Promise<T>): Promise<T> =>
 
 export const captureError = (err: unknown) => Sentry.captureException(err);
 export const onRequestError = Sentry.captureRequestError;
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
