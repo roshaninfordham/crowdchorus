@@ -1,4 +1,7 @@
-const stripQuery = <T,>(u: T): T => (typeof u === "string" ? (u.split("?")[0] as T) : u);
+// The only module that knows the monitoring vendor (Sentry). Swap it here.
+import * as Sentry from "@sentry/nextjs";
+
+const stripQuery =<T,>(u: T): T => (typeof u === "string" ? (u.split("?")[0] as T) : u);
 
 type Scrubbable = {
   user?: unknown;
@@ -42,11 +45,23 @@ export function scrubEvent<T extends Scrubbable>(event: T): T {
   return event;
 }
 
-export const sentryOptions = (dsn: string | undefined) => ({
-  dsn,
-  enabled: Boolean(dsn),
-  sendDefaultPii: false,
-  tracesSampleRate: 1.0,
-  beforeSend: scrubEvent,
-  beforeSendTransaction: scrubEvent,
-});
+/** Start monitoring. Without a DSN nothing is sent and spans are no-ops. */
+export function initMonitoring(dsn: string | undefined) {
+  if (!dsn) return;
+  const options = {
+    dsn,
+    sendDefaultPii: false,
+    tracesSampleRate: 1.0,
+    beforeSend: scrubEvent,
+    beforeSendTransaction: scrubEvent,
+  };
+  // scrubEvent is structurally typed; Sentry's event unions differ per runtime
+  Sentry.init(options as Parameters<typeof Sentry.init>[0]);
+}
+
+export const span = <T,>(name: string, fn: () => Promise<T>): Promise<T> =>
+  Sentry.startSpan({ name, op: "crowdchorus" }, fn);
+
+export const captureError = (err: unknown) => Sentry.captureException(err);
+export const onRequestError = Sentry.captureRequestError;
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

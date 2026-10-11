@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { scrubEvent } from "./sentry";
+import { scrubEvent } from "./monitoring";
 
 it("scrubs bodies, identity headers, users and signed query strings", () => {
   const event = scrubEvent({

@@ -1,6 +1,5 @@
-import * as Sentry from "@sentry/nextjs";
-import { sentryOptions } from "@/lib/sentry";
+import { initMonitoring } from "@/lib/monitoring";
 
-Sentry.init(sentryOptions(process.env.NEXT_PUBLIC_SENTRY_DSN));
+initMonitoring(process.env.NEXT_PUBLIC_SENTRY_DSN);
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export { onRouterTransitionStart } from "@/lib/monitoring";

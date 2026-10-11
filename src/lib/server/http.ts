@@ -1,5 +1,5 @@
-import * as Sentry from "@sentry/nextjs";
 import { ZodError } from "zod";
+import { captureError, span as withSpan } from "@/lib/monitoring";
 import { clientIp, rateLimit } from "./ratelimit";
 
 export class HttpError extends Error {
@@ -13,14 +13,14 @@ export class HttpError extends Error {
 }
 
 /**
- * Route wrapper: optional Sentry span, HttpError/ZodError → JSON, anything
+ * Route wrapper: optional monitoring span, HttpError/ZodError → JSON, anything
  * else → captured 500 with no internals in the body.
  */
 export function route<C>(span: string | null, handler: (req: Request, ctx: C) => Promise<Response>) {
   return async (req: Request, ctx: C): Promise<Response> => {
     try {
       return span
-        ? await Sentry.startSpan({ name: span, op: "crowdchorus" }, () => handler(req, ctx))
+        ? await withSpan(span, () => handler(req, ctx))
         : await handler(req, ctx);
     } catch (err) {
       if (err instanceof HttpError) {
@@ -30,7 +30,7 @@ export function route<C>(span: string | null, handler: (req: Request, ctx: C) =>
         const issues = err.issues.map((i) => ({ field: i.path.join("."), message: i.message }));
         return Response.json({ error: "Please check the form and try again.", code: "invalid", issues }, { status: 400 });
       }
-      Sentry.captureException(err);
+      captureError(err);
       console.error(err);
       return Response.json({ error: "Something went wrong on our side.", code: "internal" }, { status: 500 });
     }
