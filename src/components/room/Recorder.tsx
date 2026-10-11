@@ -80,7 +80,11 @@ export function Recorder({ code, submitted }: { code: string; submitted: boolean
   async function record() {
     setError(null);
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("This browser can't record audio here. Try a recent browser over HTTPS.");
+      setError(
+        window.isSecureContext
+          ? "This browser can't record audio. Try a recent Chrome, Safari or Firefox."
+          : "Browsers only allow the microphone on secure pages. Ask the host for the https:// link (rake dev HTTPS=1).",
+      );
       return;
     }
     setPhase("arming");
