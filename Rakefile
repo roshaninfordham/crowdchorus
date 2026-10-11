@@ -1,6 +1,7 @@
 # CrowdChorus task runner. `rake -T` lists everything.
 require "shellwords"
 require "fileutils"
+require "uri"
 
 ROOT = __dir__
 ENV["PATH"] = "#{Dir.home}/.cargo/bin:#{ENV["PATH"]}"
@@ -21,16 +22,19 @@ ENV["DATABASE_URL"] ||= LOCAL_DB
 DSP_BIN = ENV["CHORUS_DSP_BIN"] ||= File.join(ROOT, "dsp/target/release/chorus-dsp")
 STORAGE = ENV["STORAGE_DIR"] ||= File.join(ROOT, "storage")
 
-# Run SQL through psql: the compose container for the local DB, a local psql
-# for a remote one (Tiger Cloud), else psql from the TimescaleDB image.
+TEST_DB = LOCAL_DB.sub(%r{/crowdchorus\z}, "/crowdchorus_test")
+
+# Run SQL through psql: a local psql if installed, else the compose container
+# for the local DB, else psql from the TimescaleDB image (e.g. for Tiger Cloud).
 def psql(sql, tuples: false)
   flags = ["-v", "ON_ERROR_STOP=1", "-q", "-c", "SET client_min_messages = warning", "-f", "-"]
   flags += ["-At"] if tuples
+  url = URI(ENV["DATABASE_URL"])
   cmd =
-    if ENV["DATABASE_URL"] == LOCAL_DB
-      %w[docker compose exec -T db psql -U postgres -d crowdchorus] + flags
-    elsif system("command -v psql >/dev/null")
+    if system("command -v psql >/dev/null")
       ["psql", ENV["DATABASE_URL"]] + flags
+    elsif url.host == "localhost" && url.port == 5434
+      %w[docker compose exec -T db psql -U postgres -d] + [url.path.delete_prefix("/")] + flags
     else
       %w[docker run --rm -i timescale/timescaledb:latest-pg17 psql] + [ENV["DATABASE_URL"]] + flags
     end
@@ -55,6 +59,13 @@ namespace :db do
       psql("BEGIN;\n#{File.read(file)}\nINSERT INTO schema_migrations (version) VALUES ('#{version}');\nCOMMIT;")
       puts "migrated #{version}"
     end
+  end
+
+  desc "Create and migrate the local test database (crowdchorus_test)"
+  task :test_prepare do
+    sh "docker compose exec -T db psql -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'crowdchorus_test'\" | grep -q 1 " \
+       "|| docker compose exec -T db psql -U postgres -c 'CREATE DATABASE crowdchorus_test'"
+    sh({ "DATABASE_URL" => TEST_DB }, "rake db:migrate")
   end
 
   desc "Drop and recreate the local database (local only)"
@@ -98,10 +109,15 @@ task dev: ["db:up", "db:migrate", "demo:assets"] do
   pids.each { |p| Process.wait(p) rescue nil }
 end
 
-desc "Run every test suite (Rust, Python, TypeScript)"
-task test: ["dsp:test"] do
-  sh "uv run --project worker python -m pytest -q worker/tests"
+desc "Run every test suite (Rust, Python, TypeScript) against the test database"
+task test: ["dsp:test", "db:test_prepare"] do
+  sh({ "DATABASE_URL" => TEST_DB }, "uv run --project worker python -m pytest -q worker/tests")
   sh "pnpm test"
+end
+
+desc "Browser end-to-end tests (stop `rake dev` first: Next allows one dev server per project)"
+task e2e: ["dsp:build", "db:test_prepare"] do
+  sh({ "DATABASE_URL" => TEST_DB }, "pnpm test:e2e")
 end
 
 load File.join(ROOT, "ops/retention.rake")
