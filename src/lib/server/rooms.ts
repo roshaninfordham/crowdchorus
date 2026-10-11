@@ -104,6 +104,7 @@ export type Snapshot = {
     errorCode: string | null;
     coverUrl: string | null;
     durationsMs: Record<string, number>;
+    errors: Record<string, string>;
   } | null;
 };
 
@@ -147,6 +148,7 @@ export async function snapshot(room: Room): Promise<Snapshot> {
           errorCode: j.error_code,
           coverUrl: j.cover_art_object_key ? signedMediaUrl(j.cover_art_object_key) : null,
           durationsMs: j.model_metadata?.durations_ms ?? {},
+          errors: j.model_metadata?.errors ?? {},
         }
       : null,
   };

@@ -10,7 +10,7 @@ const ICON = { done: "✓", active: "", failed: "!", todo: "" };
 export function GenerationView({ code, job, isHost }: { code: string; job: NonNullable<Snapshot["job"]>; isHost: boolean }) {
   const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const states = stepStates(job.status, job.durationsMs);
+  const states = stepStates(job.status, job.durationsMs, job.errors);
   const current = STEPS[states.findIndex((s) => s === "active" || s === "failed")];
 
   async function retry() {
