@@ -40,6 +40,8 @@ def test_stale_job_fails_as_worker_lost(conn, storage, make_room, queue_job):
 
     assert recover_stale(conn, room["id"]) == 1
 
-    job = conn.execute("SELECT status, error_code FROM generation_jobs WHERE id = %s", (job["id"],)).fetchone()
+    job = conn.execute("SELECT status, error_code, model_metadata FROM generation_jobs WHERE id = %s",
+                       (job["id"],)).fetchone()
     assert (job["status"], job["error_code"]) == ("failed", "worker_lost")
+    assert job["model_metadata"]["errors"] == {"music": "worker_lost"}
     assert conn.execute("SELECT status FROM rooms WHERE id = %s", (room["id"],)).fetchone()["status"] == "failed"

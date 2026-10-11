@@ -19,6 +19,7 @@ WHERE id = (
 )
 RETURNING *
 """
+STEP_OF = {"brief": "brief", "generating_art": "art", "generating_music": "music", "mixing": "mix"}
 STALE_SQL = """
 SELECT * FROM generation_jobs
 WHERE status IN ('brief', 'generating_art', 'generating_music', 'mixing')
@@ -40,7 +41,7 @@ def recover_stale(conn, room_id=None) -> int:
     with conn.transaction():
         stale = conn.execute(STALE_SQL, {"room": room_id}).fetchall()
         for job in stale:
-            fail(conn, job, job["status"], "worker_lost", job["model_metadata"] or {})
+            fail(conn, job, STEP_OF[job["status"]], "worker_lost", job["model_metadata"] or {})
     if stale:
         log.warning("failed %d stale job(s) as worker_lost", len(stale))
     return len(stale)
