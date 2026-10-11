@@ -1,9 +1,11 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { cleanupRoom, db } from "./db";
 
-let roomId: string | null = null;
+let code: string | null = null;
 test.afterAll(async () => {
-  if (roomId) await cleanupRoom(roomId);
+  if (!code) return;
+  const r = await db.query("SELECT id FROM rooms WHERE join_code = $1", [code]);
+  if (r.rows[0]) await cleanupRoom(r.rows[0].id);
 });
 
 async function newPage(browser: Browser): Promise<Page> {
@@ -28,9 +30,12 @@ test("three browsers join, record, submit; double finalize makes one job", async
   await host.getByLabel(/Theme idea/).first().fill("city lights");
   await host.getByRole("button", { name: "Create room" }).click();
   await host.waitForURL(/\/r\/[A-Z2-9]{6}$/);
-  const code = host.url().split("/").pop()!;
-  roomId = (await db.query("SELECT id FROM rooms WHERE join_code = $1", [code])).rows[0].id;
+  code = host.url().split("/").pop()!;
+  const roomId = (await db.query("SELECT id FROM rooms WHERE join_code = $1", [code])).rows[0].id;
   await expect(host.getByRole("heading", { name: "Host controls" })).toBeVisible();
+  await host.setViewportSize({ width: 390, height: 844 });
+  await host.screenshot({ path: test.info().outputPath("host-mobile.png"), fullPage: true });
+  await host.setViewportSize({ width: 1280, height: 720 });
 
   const guests = [await newPage(browser), await newPage(browser)];
   for (const [i, g] of guests.entries()) {

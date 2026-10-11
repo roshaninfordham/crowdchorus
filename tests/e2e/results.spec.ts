@@ -47,7 +47,7 @@ test.beforeAll(async () => {
       { title: "Neon Choir", chorus_text: "We light the city up", musical_direction: "bright", image_prompt: "abstract", palette: ["#ff8a5b"] },
       JSON.stringify([{ title: "City lights essay", url: "https://example.org/lights", snippet: "On night and neon." }]),
       {
-        providers: { text: "local", image: "local", music: "local", search: "local", analytics: "local" },
+        providers: { text: "local", image: "local", music: "local", search: "nimble", analytics: "local" },
         fallback: { brief: true, art: true, music: true, sources: false },
         durations_ms: { brief: 1, art: 2, music: 3, mix: 4, total: 12345 },
       },
@@ -99,4 +99,6 @@ test("results page shows cover, song, labelled fallbacks and metrics, and surviv
   expect((await request.get(tampered)).status()).toBe(403);
 
   await page.screenshot({ path: test.info().outputPath("results.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: test.info().outputPath("results-mobile.png"), fullPage: true });
 });
