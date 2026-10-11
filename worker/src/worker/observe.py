@@ -32,6 +32,11 @@ def before_send(event, _hint):
             exc["value"] = PATHISH.sub("[redacted]", exc["value"])[:200]
         for frame in (exc.get("stacktrace") or {}).get("frames", []):
             frame.pop("vars", None)
+    # transactions: subprocess/httpx spans carry command lines with vocal file paths
+    for s in event.get("spans") or []:
+        s.pop("data", None)
+        if isinstance(s.get("description"), str):
+            s["description"] = PATHISH.sub("[redacted]", s["description"])
     crumbs = event.get("breadcrumbs") or {}
     for c in crumbs.get("values", []) if isinstance(crumbs, dict) else []:
         c.pop("data", None)
