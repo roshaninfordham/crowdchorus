@@ -232,7 +232,8 @@ on secure origins.
 
 ```bash
 rake -T          # every task
-rake test        # Rust, Python and TypeScript suites
+rake test        # Rust, Python and TypeScript suites (uses a separate crowdchorus_test DB)
+rake e2e         # three-browser Playwright run with fake microphones (stop `rake dev` first)
 ```
 
 ## Project status
