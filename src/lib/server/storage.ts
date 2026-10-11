@@ -1,6 +1,7 @@
 import path from "node:path";
 
-export const STORAGE_DIR = path.resolve(process.env.STORAGE_DIR ?? "./storage");
+// Runtime data (private vocals included): never traced into the build output.
+export const STORAGE_DIR = path.resolve(/*turbopackIgnore: true*/ process.env.STORAGE_DIR ?? "./storage");
 
 /** Keys the browser may fetch via a signed URL. Vocals never qualify. */
 const PUBLIC_PREFIXES = ["rooms/", "demo/"];
@@ -13,12 +14,12 @@ export function publicMediaPath(key: string, root = STORAGE_DIR): string | null 
   if (!PUBLIC_PREFIXES.some((p) => key.startsWith(p))) return null;
   const parts = key.split("/");
   if (parts.some((p) => p === "" || p === "." || p === ".." || !/^[\w.-]+$/.test(p))) return null;
-  const full = path.resolve(root, ...parts);
+  const full = path.resolve(/*turbopackIgnore: true*/ root, ...parts);
   return full.startsWith(root + path.sep) ? full : null;
 }
 
 export function storagePath(key: string): string {
-  return path.join(STORAGE_DIR, key);
+  return path.join(/*turbopackIgnore: true*/ STORAGE_DIR, key);
 }
 
 export function vocalKey(roomId: string, contributionId: string): string {
