@@ -1,19 +1,15 @@
-"""Creative brief: aggregate the room, ask Gemini for structured JSON, else a labelled template."""
+"""Creative brief: aggregate the room, ask the text provider for structured JSON, else a labelled template."""
 
 import json
-import logging
 import statistics
 from collections import Counter
 from typing import Annotated
 
 from pydantic import BaseModel, Field, field_validator
 
-from . import gemini
-from .chorus import template as template_line
+from . import chorus, providers
 from .config import music, storage_path
 from .media import MediaError, dsp
-
-log = logging.getLogger(__name__)
 
 Hex = Annotated[str, Field(pattern=r"^#[0-9A-Fa-f]{6}$")]
 
@@ -33,6 +29,13 @@ class Brief(BaseModel):
         if v not in music()["moods"]:
             raise ValueError("mood must be one of music.json moods")
         return v
+
+    def cover_prompt(self) -> str:
+        return (
+            f"{self.image_prompt}\nSquare 1:1 abstract album cover for an original song titled "
+            f"'{self.title}'. Use this palette: {', '.join(self.palette)}. "
+            "Abstract only: no people, faces, portraits, hands, logos, words or letters."
+        )
 
 
 SYSTEM = (
@@ -108,7 +111,7 @@ def template(inp: dict) -> Brief:
         voice += f" centred near {inp['median_pitch_hz']:.0f} Hz"
     return Brief(
         title=TITLES[mood],
-        chorus_text=inp["chorus_line"] or template_line(mood, inp["theme"]),
+        chorus_text=inp["chorus_line"] or chorus.template(mood, inp["theme"]),
         musical_direction=(
             f"{mood.capitalize()} pop in {m['key']} at {m['bpm']} BPM over {'-'.join(m['progression'])}; "
             f"warm, steady groove that leaves room for {voice} on the chorus."
@@ -123,27 +126,24 @@ def template(inp: dict) -> Brief:
     )
 
 
-def make_brief(inp: dict) -> tuple[Brief, bool, str | None]:
-    """Return (brief, fallback, error_code)."""
+def prompt(inp: dict) -> str:
     m = music()
     facts = {k: inp[k] for k in ("mood", "mood_counts", "theme", "theme_words", "participants",
                                  "median_pitch_hz", "voiced_ratio")}
     facts.update(key=m["key"], bpm=m["bpm"], progression=m["progression"], allowed_moods=m["moods"])
-    prompt = (
+    return (
         "Room facts (JSON):\n" + json.dumps(facts) + "\n"
         + (f"The crowd sang this line; use it verbatim as chorus_text: {inp['chorus_line']}\n" if inp["chorus_line"] else
            "Write an original chorus_text of at most 12 words, singable over 8 beats.\n")
         + "musical_direction must say instrumental only and keep the key, tempo and progression."
     )
-    try:
-        brief = gemini.generate_json(prompt, Brief, SYSTEM)
-    except gemini.NoKey:
-        return template(inp), True, None
-    except Exception as e:  # API error or schema-invalid output -> labelled template
-        code = "brief_invalid" if isinstance(e, ValueError) else "gemini_error"
-        log.warning("brief fell back to template: %s", code)
-        return template(inp), True, code
-    # the crowd already sang chorus_line and the theme is the room's own: keep them authoritative
-    brief.chorus_text = inp["chorus_line"] or brief.chorus_text
-    brief.theme = inp["theme"]
-    return brief, False, None
+
+
+def make_brief(inp: dict) -> tuple[Brief, str, bool, str | None]:
+    """Return (brief, provider, fallback, error_code)."""
+    def run(p):
+        b = Brief.model_validate(p.brief(inp).model_dump())  # re-validate every provider's output
+        # the crowd already sang chorus_line and the theme is the room's own: keep them authoritative
+        return b.model_copy(update={"chorus_text": inp["chorus_line"] or b.chorus_text, "theme": inp["theme"]})
+
+    return providers.attempt("text", run)

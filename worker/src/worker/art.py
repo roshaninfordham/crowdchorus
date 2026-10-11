@@ -1,17 +1,13 @@
-"""Album cover: Nano Banana image, else a procedural abstract cover from the brief palette."""
+"""Album cover: image provider, else a procedural abstract cover from the brief palette."""
 
 import io
-import logging
 import os
 import random
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
-from . import gemini
-from .brief import Brief
-
-log = logging.getLogger(__name__)
+from . import providers
 
 SIZE = 1024
 
@@ -62,22 +58,8 @@ def write_atomic(path: Path, data: bytes) -> None:
     os.replace(tmp, path)
 
 
-def make_cover(brief: Brief, room_id: str, path: Path) -> tuple[bytes, bool, str | None]:
-    """Write the cover to `path`; return (png, fallback, error_code)."""
-    prompt = (
-        f"{brief.image_prompt}\nSquare 1:1 abstract album cover for an original song titled "
-        f"'{brief.title}'. Use this palette: {', '.join(brief.palette)}. "
-        "Abstract only: no people, faces, portraits, hands, logos, words or letters."
-    )
-    png, fallback, code = None, True, None
-    try:
-        png, fallback = square_png(gemini.generate_image(prompt)), False
-    except gemini.NoKey:
-        pass
-    except Exception as e:
-        log.warning("cover fell back to procedural art: %s", type(e).__name__)
-        code = "image_error"
-    if png is None:
-        png = procedural(brief.palette, room_id)
+def make_cover(brief, room_id: str, path: Path) -> tuple[bytes, str, bool, str | None]:
+    """Write the cover to `path`; return (png, provider, fallback, error_code)."""
+    png, *rest = providers.attempt("image", lambda p: square_png(p.cover(brief, room_id)))
     write_atomic(path, png)
-    return png, fallback, code
+    return png, *rest

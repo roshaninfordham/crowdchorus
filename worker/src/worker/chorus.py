@@ -1,13 +1,9 @@
-"""One original, singable chorus line for a room (Gemini, labelled template fallback)."""
-
-import logging
+"""One original, singable chorus line for a room (text provider, labelled template fallback)."""
 
 from pydantic import BaseModel, field_validator
 
-from . import gemini
+from . import providers
 from .config import music
-
-log = logging.getLogger(__name__)
 
 MAX_WORDS = 12
 
@@ -42,6 +38,11 @@ class ChorusLine(BaseModel):
         return v
 
 
+def prompt(mood: str, theme: str | None) -> str:
+    m = music()
+    return f"Mood: {mood}. Theme: {theme or 'none'}. Tempo {m['bpm']} BPM, key {m['key']}. Write the chorus line."
+
+
 def template(mood: str, theme: str | None = None) -> str:
     if theme:
         themed = THEMED.format(theme=" ".join(theme.split()).capitalize())
@@ -51,16 +52,8 @@ def template(mood: str, theme: str | None = None) -> str:
 
 
 def chorus_line(mood: str, theme: str | None = None) -> tuple[str, str]:
-    """Return (line, source) where source is 'gemini' or 'template'."""
-    m = music()
-    prompt = (
-        f"Mood: {mood}. Theme: {theme or 'none'}. Tempo {m['bpm']} BPM, key {m['key']}. "
-        "Write the chorus line."
+    """Return (line, source): source is the provider name, 'template' for the local one."""
+    line, name, _, _ = providers.attempt(
+        "text", lambda p: ChorusLine(line=p.chorus_line(mood, theme)).line  # re-validate every provider's output
     )
-    try:
-        return gemini.generate_json(prompt, ChorusLine, SYSTEM, timeout=20).line, "gemini"
-    except gemini.NoKey:
-        pass
-    except Exception as e:  # any API/validation failure -> labelled template
-        log.warning("chorus line fell back to template: %s", type(e).__name__)
-    return template(mood, theme), "template"
+    return line, "template" if name == "local" else name

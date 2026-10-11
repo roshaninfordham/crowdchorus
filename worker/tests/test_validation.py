@@ -5,9 +5,9 @@ import types
 import pytest
 from pydantic import ValidationError
 
-from worker import gemini
 from worker.brief import Brief, make_brief, template
 from worker.chorus import TEMPLATES, ChorusLine, chorus_line
+from worker.providers import gemini
 
 GOOD = {
     "title": "Blue Hour Chorus",
@@ -39,9 +39,9 @@ def test_invalid_gemini_output_falls_back_to_labelled_template(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(gemini, "_create", lambda **_: types.SimpleNamespace(output_text='{"title": "x"}'))
 
-    brief, fallback, code = make_brief(INPUTS)
+    brief, provider, fallback, code = make_brief(INPUTS)
 
-    assert fallback and code == "brief_invalid"
+    assert (provider, fallback, code) == ("local", True, "text_invalid")
     assert brief == template(INPUTS)
 
 

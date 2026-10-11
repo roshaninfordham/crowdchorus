@@ -1,26 +1,21 @@
-"""Instrumental: Lyria clip decoded to the shared WAV format, else the prepared demo backing."""
+"""Instrumental: music provider output decoded to the shared WAV format, else the prepared demo backing."""
 
-import logging
 import os
-import shutil
 import tempfile
 from pathlib import Path
 
-from . import gemini, media
-from .brief import Brief
+from . import media, providers
 from .config import music, storage_path
-
-log = logging.getLogger(__name__)
 
 MIN_SECONDS = 10
 SILENCE_DB = -50
 
 
-class InvalidAudio(Exception):
+class InvalidAudio(ValueError):
     pass
 
 
-def prompt(brief: Brief) -> str:
+def prompt(brief) -> str:
     m = music()
     return (
         "Instrumental only: no vocals, no singing, no humming, no spoken words. "
@@ -49,26 +44,20 @@ def demo_backing() -> Path:
     return demo
 
 
-def make_instrumental(brief: Brief, cover_png: bytes | None, out: Path) -> tuple[bool, str | None]:
-    """Write the backing to `out`; return (fallback, error_code)."""
-    out.parent.mkdir(parents=True, exist_ok=True)
-    code = None
+def install(audio: bytes, out: Path) -> None:
+    """Decode any provider's audio to 44.1 kHz mono WAV, validate it, then atomically place it."""
     with tempfile.TemporaryDirectory(dir=out.parent) as tmp:
-        raw, wav = Path(tmp) / "lyria.bin", Path(tmp) / "instrumental.wav"
+        raw, wav = Path(tmp) / "provider.bin", Path(tmp) / "instrumental.wav"
+        raw.write_bytes(audio)
         try:
-            raw.write_bytes(gemini.generate_music(prompt(brief), cover_png))
             media.to_wav(raw, wav)
-            validate(wav)
-            os.replace(wav, out)
-            return False, None
-        except gemini.NoKey:
-            pass
-        except (InvalidAudio, media.MediaError) as e:
-            log.warning("lyria output unusable: %s", type(e).__name__)
-            code = "music_invalid"
-        except Exception as e:
-            log.warning("lyria failed: %s", type(e).__name__)
-            code = "lyria_error"
-        shutil.copyfile(demo_backing(), wav)
+        except media.MediaError:
+            raise InvalidAudio("undecodable") from None
+        validate(wav)
         os.replace(wav, out)
-    return True, code
+
+
+def make_instrumental(brief, cover_png: bytes | None, out: Path) -> tuple[None, str, bool, str | None]:
+    """Write the backing to `out`; return (None, provider, fallback, error_code)."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    return providers.attempt("music", lambda p: install(p.instrumental(brief, cover_png), out))

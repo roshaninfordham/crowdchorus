@@ -10,8 +10,8 @@ from pathlib import Path
 
 import sentry_sdk
 
-from . import art, brief, media, music, sources
-from .config import env, storage_path
+from . import art, brief, media, music, providers, sources
+from .config import storage_path
 from .db import event, set_room_status, update_job
 from .observe import span
 
@@ -41,7 +41,15 @@ def timed(meta: dict, step: str):
     meta["durations_ms"][step] = round((time.monotonic() - t) * 1000)
 
 
-def record(meta: dict, step: str, fallback: bool, code: str | None) -> None:
+CAPABILITY = {"brief": "text", "sources": "search", "art": "image", "music": "music"}
+MODEL_KEY = {"brief": "text_model", "art": "image_model", "music": "music_model"}
+
+
+def record(meta: dict, step: str, provider: str, fallback: bool, code: str | None) -> None:
+    cap = CAPABILITY[step]
+    meta["providers"][cap] = provider
+    if step in MODEL_KEY:
+        meta[MODEL_KEY[step]] = providers.model(cap, provider)
     meta["fallback"][step] = fallback
     if code:
         meta["errors"][step] = code
@@ -79,9 +87,10 @@ def run_job(conn, job: dict) -> str:
     jid, rid = job["id"], str(job["room_id"])
     keys = {k: f"rooms/{rid}/{f}" for k, f in (("cover", "cover.png"), ("inst", "instrumental.wav"), ("song", "song.mp3"))}
     meta = {
-        "text_model": env("GEMINI_TEXT_MODEL"),
-        "image_model": env("GEMINI_IMAGE_MODEL"),
-        "music_model": env("LYRIA_MODEL"),
+        "text_model": None,
+        "image_model": None,
+        "music_model": None,
+        "providers": {},
         "fallback": {"brief": False, "art": False, "music": False, "sources": False},
         "durations_ms": {},
         "errors": {},
@@ -96,15 +105,15 @@ def run_job(conn, job: dict) -> str:
             if not room:
                 raise StepError("room_missing")
 
-            with timed(meta, "brief"), span("gemini.text", "brief"):
+            with timed(meta, "brief"), span("provider.text", "brief"):
                 inp = brief.gather(conn, room)
-                b, fb, code = brief.make_brief(inp)
-            record(meta, "brief", fb, code)
+                b, *outcome = brief.make_brief(inp)
+            record(meta, "brief", *outcome)
             srcs = []
             if b.theme:
-                with timed(meta, "sources"), span("http.nimble", "sources"):
-                    srcs, fb, code = sources.search(b.theme)
-                record(meta, "sources", fb, code)
+                with timed(meta, "sources"), span("provider.search", "sources"):
+                    srcs, *outcome = sources.search(b.theme)
+                record(meta, "sources", *outcome)
             update_job(conn, jid, brief=b.model_dump(), sources=srcs, model_metadata=meta)
             event(conn, rid, "brief_done", meta["durations_ms"]["brief"], participants=inp["participants"],
                   clips=inp["clips"], model=meta["text_model"], fallback=meta["fallback"]["brief"],
@@ -112,20 +121,22 @@ def run_job(conn, job: dict) -> str:
 
             step = "art"
             update_job(conn, jid, status="generating_art")
-            with timed(meta, "art"), span("gemini.image", "cover"):
-                png, fb, code = art.make_cover(b, rid, storage_path(keys["cover"]))
-            record(meta, "art", fb, code)
+            with timed(meta, "art"), span("provider.image", "cover"):
+                png, *outcome = art.make_cover(b, rid, storage_path(keys["cover"]))
+            record(meta, "art", *outcome)
             # cover lands before music starts so the UI can reveal it early
             update_job(conn, jid, cover_art_object_key=keys["cover"], model_metadata=meta)
-            event(conn, rid, "art_done", meta["durations_ms"]["art"], model=meta["image_model"], fallback=fb)
+            event(conn, rid, "art_done", meta["durations_ms"]["art"], model=meta["image_model"],
+                  fallback=meta["fallback"]["art"])
 
             step = "music"
             update_job(conn, jid, status="generating_music")
-            with timed(meta, "music"), span("gemini.lyria", "instrumental"):
-                fb, code = music.make_instrumental(b, png, storage_path(keys["inst"]))
-            record(meta, "music", fb, code)
+            with timed(meta, "music"), span("provider.music", "instrumental"):
+                _, *outcome = music.make_instrumental(b, png, storage_path(keys["inst"]))
+            record(meta, "music", *outcome)
             update_job(conn, jid, instrumental_object_key=keys["inst"], model_metadata=meta)
-            event(conn, rid, "music_done", meta["durations_ms"]["music"], model=meta["music_model"], fallback=fb)
+            event(conn, rid, "music_done", meta["durations_ms"]["music"], model=meta["music_model"],
+                  fallback=meta["fallback"]["music"])
 
             step = "mix"
             update_job(conn, jid, status="mixing")

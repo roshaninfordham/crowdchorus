@@ -19,7 +19,8 @@ def test_pipeline_without_keys_completes_with_labelled_fallbacks(conn, storage, 
     meta = job["model_metadata"]
     assert meta["fallback"] == {"brief": True, "art": True, "music": True, "sources": True}
     assert {"brief", "art", "music", "mix", "total"} <= meta["durations_ms"].keys()
-    assert meta["text_model"] and meta["image_model"] and meta["music_model"]
+    assert meta["providers"] == {"text": "local", "search": "local", "image": "local", "music": "local"}
+    assert (meta["text_model"], meta["image_model"], meta["music_model"]) == ("local", "local", "local")
     assert job["sources"] == []
     assert job["brief"]["chorus_text"] == room["chorus_line"] and len(job["brief"]["palette"]) >= 3
 
