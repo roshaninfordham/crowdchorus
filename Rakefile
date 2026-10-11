@@ -102,9 +102,10 @@ task :worker do
   sh "uv run --project worker python -m worker"
 end
 
-desc "Start db, worker and web together (Ctrl-C stops all)"
+desc "Start db, worker, web and hourly retention together (HTTPS=1 for phone mics; Ctrl-C stops all)"
 task dev: ["db:up", "db:migrate", "demo:assets"] do
-  pids = [spawn("uv run --project worker python -m worker"), spawn("pnpm dev")]
+  web = ENV["HTTPS"] == "1" ? [{ "DEV_HTTPS" => "1" }, "pnpm dev --experimental-https"] : ["pnpm dev"]
+  pids = [spawn("uv run --project worker python -m worker"), spawn(*web), spawn("rake retention:loop")]
   trap("INT") { pids.each { |p| Process.kill("TERM", p) rescue nil } }
   pids.each { |p| Process.wait(p) rescue nil }
 end
