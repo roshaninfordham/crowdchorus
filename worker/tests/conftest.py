@@ -1,11 +1,13 @@
 """Fixtures: a temp STORAGE_DIR, no integration keys, and throwaway rooms that are deleted afterwards.
 
-The database is shared with the web app, so every row created here belongs to a
-test room that is removed (with its session_events) on teardown.
+Tests run against a separate database (`rake db:test_prepare`) so a live dev
+worker can't claim their jobs; rows are still cleaned up on teardown.
 """
 
 import json
 import os
+
+os.environ.setdefault("DATABASE_URL", "postgres://postgres:crowdchorus@localhost:5434/crowdchorus_test")
 import random
 import uuid
 from pathlib import Path
