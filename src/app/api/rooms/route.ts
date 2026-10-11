@@ -28,7 +28,7 @@ export const POST = route("room.create", async (req) => {
            VALUES ($1, $2, $3, $4, $5, true) RETURNING id`,
           [roomId, body.nickname, sha256Hex(sessionToken), body.mood, body.theme],
         );
-        await logEvent(db, roomId, "room_created", { mood: body.mood, chorus_source: chorus.source, has_theme: !!body.theme });
+        await logEvent(db, roomId, "room_created", { mood: body.mood, chorus_template: chorus.source === "template", has_theme: !!body.theme });
         await logEvent(db, roomId, "participant_joined", { host: true });
         return p.rows[0].id as string;
       });

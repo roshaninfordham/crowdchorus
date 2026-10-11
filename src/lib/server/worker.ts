@@ -9,15 +9,18 @@ async function workerCli(args: string[], timeoutMs: number): Promise<unknown> {
   return JSON.parse(out.trim().split("\n").pop() ?? "");
 }
 
-const chorusOut = z.object({ line: z.string().min(1), source: z.enum(["gemini", "template"]) });
-export type Chorus = z.infer<typeof chorusOut>;
+// `source` is the text provider's name, or "template" for the local one.
+const chorusOut = z.object({ line: z.string().min(1), source: z.string().min(1) });
+/** rooms.chorus_source CHECK allows only gemini|template; other model providers are stored as null (not a template). */
+export type Chorus = { line: string; source: "gemini" | "template" | null };
 
-/** Chorus line from the worker (Gemini or its template); tiny TS template if the CLI is unavailable. */
+/** Chorus line from the worker's text provider or its template; tiny TS template if the CLI is unavailable. */
 export async function chorusLine(mood: string, theme: string | null): Promise<Chorus> {
   try {
     const args = ["chorus", "--mood", mood, ...(theme ? ["--theme", theme] : [])];
     const r = chorusOut.parse(await workerCli(args, 20_000));
-    return { line: cleanText(r.line, 140), source: r.source };
+    const source = r.source === "template" || r.source === "gemini" ? r.source : null;
+    return { line: cleanText(r.line, 140), source };
   } catch {
     const subject = theme ? theme.toLowerCase() : "this room";
     return { line: `Sing it ${mood}, sing it loud, ${subject} in one sound`, source: "template" };
