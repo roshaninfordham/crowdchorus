@@ -81,7 +81,7 @@ export default async function ResultsPage({ params }: Props) {
         </div>
         <div className="space-y-5">
           <p className="text-sm font-medium tracking-widest text-accent uppercase">
-            A collective single by {m.participants} {m.participants === 1 ? "voice" : "voices"}
+            A collective single by {m.successfulParticipants} {m.successfulParticipants === 1 ? "voice" : "voices"}
           </p>
           <h1 className="font-display text-5xl leading-tight sm:text-6xl">{title}</h1>
           {job.brief?.chorus_text && <p className="font-display text-2xl text-muted italic">“{job.brief.chorus_text}”</p>}
