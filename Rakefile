@@ -110,9 +110,10 @@ task dev: ["db:up", "db:migrate", "demo:assets"] do
   pids.each { |p| Process.wait(p) rescue nil }
 end
 
-desc "Run every test suite (Rust, Python, TypeScript) against the test database"
+desc "Run every test suite (Rust, Python, Ruby, TypeScript) against the test database"
 task test: ["dsp:test", "db:test_prepare"] do
   sh({ "DATABASE_URL" => TEST_DB }, "uv run --project worker python -m pytest -q worker/tests")
+  sh "ruby ops/test/retention_test.rb"
   sh "pnpm test"
 end
 
