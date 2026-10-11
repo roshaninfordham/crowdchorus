@@ -59,3 +59,12 @@ body {
 @utility fallback-label {
   @apply inline-flex items-center gap-1.5 rounded-md border border-accent-2/40 bg-accent-2/10 px-2 py-1 text-xs font-medium text-accent-2;
 }
+
+@keyframes cc-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
