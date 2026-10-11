@@ -11,15 +11,15 @@ async function workerCli(args: string[], timeoutMs: number): Promise<unknown> {
 
 // `source` is the text provider's name, or "template" for the local one.
 const chorusOut = z.object({ line: z.string().min(1), source: z.string().min(1) });
-/** rooms.chorus_source CHECK allows only gemini|template; other model providers are stored as null (not a template). */
-export type Chorus = { line: string; source: "gemini" | "template" | null };
+/** rooms.chorus_source holds the provider name (CHECK ^[a-z0-9_-]{1,32}$). */
+export type Chorus = { line: string; source: string | null };
 
 /** Chorus line from the worker's text provider or its template; tiny TS template if the CLI is unavailable. */
 export async function chorusLine(mood: string, theme: string | null): Promise<Chorus> {
   try {
     const args = ["chorus", "--mood", mood, ...(theme ? ["--theme", theme] : [])];
     const r = chorusOut.parse(await workerCli(args, 20_000));
-    const source = r.source === "template" || r.source === "gemini" ? r.source : null;
+    const source = /^[a-z0-9_-]{1,32}$/.test(r.source) ? r.source : null;
     return { line: cleanText(r.line, 140), source };
   } catch {
     const subject = theme ? theme.toLowerCase() : "this room";

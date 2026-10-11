@@ -13,7 +13,7 @@ export type Room = {
   status: "collecting" | "generating" | "ready" | "failed" | "waiting" | "closed";
   theme: string | null;
   chorus_line: string | null;
-  chorus_source: "gemini" | "template" | null;
+  chorus_source: string | null;
   created_at: Date;
 };
 
