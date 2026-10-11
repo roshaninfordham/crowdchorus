@@ -105,6 +105,7 @@ uv run --project worker python -m worker analytics
 | `CHORUS_DSP_BIN` | web, worker | `dsp/target/release/chorus-dsp` |
 | `MEDIA_SIGNING_SECRET` | web | dev-only random per process (logs a warning) |
 | `PUBLIC_BASE_URL` | web | request origin; used for QR/share links |
+| `TEXT_PROVIDER`, `IMAGE_PROVIDER`, `MUSIC_PROVIDER`, `SEARCH_PROVIDER`, `ANALYTICS_PROVIDER` | worker | `auto`: the vendor adapter when its key is set, else `local` |
 | `GEMINI_API_KEY` | worker | template chorus + template brief (labelled) |
 | `GEMINI_TEXT_MODEL` | worker | `gemini-2.5-flash` |
 | `GEMINI_IMAGE_MODEL` | worker | `gemini-nano-banana-2.1` |
