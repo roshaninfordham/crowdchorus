@@ -23,4 +23,19 @@ namespace :retention do
          "('00000000-0000-0000-0000-000000000000', 'retention_sweep', '{\"deleted\": #{keys.size}}');")
     puts "retention: deleted #{keys.size} clip(s) older than #{hours}h or withdrawn"
   end
+
+  # ponytail: in-process hourly loop for dev; in production run `rake retention:sweep` from cron.
+  desc "Sweep every RETENTION_INTERVAL seconds (default 3600)"
+  task :loop do
+    interval = Integer(ENV.fetch("RETENTION_INTERVAL", "3600"))
+    loop do
+      begin
+        Rake::Task["retention:sweep"].reenable
+        Rake::Task["retention:sweep"].invoke
+      rescue => e
+        warn "retention sweep failed: #{e.message}"
+      end
+      sleep interval
+    end
+  end
 end
