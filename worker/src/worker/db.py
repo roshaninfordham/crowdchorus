@@ -16,7 +16,9 @@ def connect() -> psycopg.Connection:
 def event(conn, room_id, event_type: str, duration_ms: int | None = None, **metadata) -> None:
     """Append a session event. Callers pass only counts, model names and error codes."""
     conn.execute(
-        "INSERT INTO session_events (room_id, event_type, duration_ms, metadata) VALUES (%s, %s, %s, %s)",
+        # clock_timestamp, not now(): events written in one transaction keep their real order
+        "INSERT INTO session_events (room_id, event_type, occurred_at, duration_ms, metadata) "
+        "VALUES (%s, %s, clock_timestamp(), %s, %s)",
         (room_id, event_type, duration_ms, Jsonb(metadata)),
     )
 
