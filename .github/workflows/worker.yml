@@ -1,0 +1,34 @@
+name: worker
+on:
+  push:
+    paths: ["worker/**", "dsp/**", "db/**", "music.json", "Rakefile", ".github/workflows/worker.yml"]
+  pull_request:
+    paths: ["worker/**", "dsp/**", "db/**", "music.json"]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg17
+        env:
+          POSTGRES_PASSWORD: crowdchorus
+          POSTGRES_DB: crowdchorus
+        ports: ["5434:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-retries 30
+    env:
+      # 127.0.0.1 (not localhost) so Rake uses the runner's psql, not docker compose
+      DATABASE_URL: postgres://postgres:crowdchorus@127.0.0.1:5434/crowdchorus
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg postgresql-client
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: dsp
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - uses: astral-sh/setup-uv@v6
+      - run: gem install rake && rake dsp:build db:migrate
+      - run: uv run --project worker python -m pytest -q worker/tests
