@@ -1,9 +1,9 @@
 name: worker
 on:
   push:
-    paths: ["worker/**", "dsp/**", "db/**", "music.json", "Rakefile", ".github/workflows/worker.yml"]
+    paths: ["worker/**", "dsp/**", "db/**", "ops/**", "music.json", "Rakefile", ".github/workflows/worker.yml"]
   pull_request:
-    paths: ["worker/**", "dsp/**", "db/**", "music.json"]
+    paths: ["worker/**", "dsp/**", "db/**", "ops/**", "music.json"]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -32,3 +32,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: gem install rake && rake dsp:build db:migrate
       - run: uv run --project worker python -m pytest -q worker/tests
+      - run: gem install minitest && ruby ops/test/retention_test.rb
+        env:
+          TEST_DATABASE_URL: ${{ env.DATABASE_URL }}

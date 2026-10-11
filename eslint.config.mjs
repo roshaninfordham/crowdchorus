@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
     "storage/**",
     "dsp/**",
     "worker/**",
+    "video/**",
   ]),
 ]);
 

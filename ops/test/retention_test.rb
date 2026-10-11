@@ -6,10 +6,12 @@ require "fileutils"
 
 class RetentionTest < Minitest::Test
   ROOT = File.expand_path("../..", __dir__)
-  DB = "postgres://postgres:crowdchorus@localhost:5434/crowdchorus_test"
+  DB = ENV.fetch("TEST_DATABASE_URL", "postgres://postgres:crowdchorus@localhost:5434/crowdchorus_test")
 
+  # CI has a psql client; locally the database lives in docker compose.
   def sql(q)
-    IO.popen(%w[docker compose exec -T db psql -U postgres -d crowdchorus_test -At -q -c] + [q], chdir: ROOT, &:read).strip
+    cmd = system("command -v psql >/dev/null") ? ["psql", DB] : %w[docker compose exec -T db psql -U postgres -d crowdchorus_test]
+    IO.popen(cmd + ["-At", "-q", "-c", q], chdir: ROOT, &:read).strip
   end
 
   def setup
